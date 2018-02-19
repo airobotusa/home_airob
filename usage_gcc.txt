@@ -1,0 +1,162 @@
+How to use gcc
+
+Hello testing
+
+https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html
+
+how to compile cpp file
+g++ myprog.cpp
+or
+g++ -o aa.exe myprog.cpp
+then
+to execute aa.exe ==> ./aa.exe
+
+g++ -o myprog.exe file1.cpp file2.cpp 
+
+// Cygwin in bash shell
+$ gcc --version
+gcc (GCC) 4.5.3
+ 
+$ gcc-3 --version
+gcc-3 (GCC) 3.4.4 (cygming special, gdc 0.12, using dmd 0.125)
+ 
+// MinGW in CMD shell
+> gcc --version
+gcc (GCC) 4.6.2
+ 
+> g++ --version
+gcc (GCC) 4.6.2
+More details can be obtained via -v option, for example,
+
+> gcc -v
+Using built-in specs.
+COLLECT_GCC=gcc
+COLLECT_LTO_WRAPPER=d:/mingw/bin/../libexec/gcc/mingw32/4.6.2/lto-wrapper.exe
+Target: mingw32
+Configured with: ../gcc-4.6.2/configure --enable-languages=c,c++,ada,fortran,objc,obj-c++ 
+  --disable-sjlj-exceptions --with-dwarf2 --enable-shared --enable-libgomp 
+  --disable-win32-registry --enable-libstdcxx-debug --enable-version-specific-runtime-libs 
+  --build=mingw32 --prefix=/mingw
+Thread model: win32
+gcc version 4.6.2 (GCC)
+Help
+You can get the help manual via the --help option. For example,
+
+> gcc --help
+Man Pages
+You can read the GCC manual pages (or man pages) via the man utility:
+
+> man gcc
+// or
+> man g++
+// Press space key for next page, or 'q' to quit.
+Reading man pages under CMD or Bash shell can be difficult. You could generate a text file via:
+
+> man gcc | col -b > gcc.txt
+The col utility is needed to strip the backspace. (For Cygwin, it is available in "Utils", "util-linux" package.)
+
+Alternatively, you could look for an online man pages, e.g., http://linux.die.net/man/1/gcc.
+
+For MinGW, the GCC man pages are kept in "share\man\man1\gcc.1". For Cygwin, it is kept under "usr\share\man\man1".
+
+1.3  Getting Started
+The GNU C and C++ compiler are gcc and g++, respectively.
+
+Compile/Link a Simple C Program - hello.c
+Below is the Hello-world C program hello.c:
+
+1
+2
+3
+4
+5
+6
+7
+// hello.c
+#include <stdio.h>
+ 
+int main() {
+    printf("Hello, world!\n");
+    return 0;
+}
+To compile the hello.c:
+
+> gcc hello.c
+  // Compile and link source file hello.c into executable a.exe
+The default output executable is called "a.exe".
+
+To run the program:
+
+// Under CMD Shell
+> a
+// Under Bash or Bourne Shell - include the current path (./)
+$ ./a
+NOTES (for Bash Shell, Bourne Shell and Unixes):
+
+In Bash or Bourne shell, the default PATH does not include the current working directory. Hence, you may need to include the current path (./) in the command. (Windows include the current directory in the PATH automatically; whereas Unixes do not - you need to include the current directory explicitly in the PATH.)
+You may need to include the file extension, i.e., "./a.exe".
+In some Unixes, the output file could be "a.out" or simply "a". Furthermore, you may need to assign executable file-mode (x) to the executable file "a.out", via command "chmod a+x filename" (add executable file-mode "+x" to all users "a+x").
+To specify the output filename, use -o option:
+
+> gcc -o hello.exe hello.c
+  // Compile and link source file hello.c into executable hello.exe
+> hello
+  // Execute hello.exe under CMD shell
+$ ./hello
+  // Execute hello.exe under Bash or Bourne shell, specifying the current path (./)
+NOTE for Unixes: In Unixes, you may omit the .exe file extension, and simply name the output executable as hello. You need to assign executable file mode via command "chmod a+x hello".
+
+Compile/Link a Simple C++ Program - hello.cpp
+1
+2
+3
+4
+5
+6
+7
+8
+// hello.cpp
+#include <iostream>
+using namespace std;
+ 
+int main() {
+   cout << "Hello, world!" << endl;
+   return 0;
+}
+You need to use g++ to compile C++ program, as follows. We use the -o option to specify the output file name.
+
+> g++ -o hello.exe hello.cpp
+   // Compile and link source hello.cpp into executable hello.exe
+> hello
+   // Execute under CMD shell
+$ ./hello
+   // Execute under Bash or Bourne shell, specifying the current path (./)
+More GCC Compiler Options
+A few commonly-used GCC compiler options are:
+
+$ g++ -Wall -g -o Hello.exe Hello.cpp
+-o: specifies the output executable filename.
+-Wall: prints "all" warning messages.
+-g: generates additional symbolic debuggging information for use with gdb debugger.
+Compile and Link Separately
+The above command compile the source file into object file and link with other object files (system library) into executable in one step. You may separate compile and link in two steps as follows:
+
+// Compile-only with -c option
+> g++ -c -Wall -g Hello.cpp
+// Link object file(s) into an executable
+> g++ -g -o Hello.exe Hello.o
+The options are:
+
+-c: compile into object file "Hello.o". By default, the object file has the same name as the source file with extension of ".o" (there is no need to specify -o option). No linking with other object file or library.
+Linking is performed when the input file are object files ".o" (instead of source file ".cpp" or ".c"). GCC uses a separate linker program (called ld.exe) to perform the linking.
+Compile and Link Multiple Source Files
+Suppose that your program has two source files: file1.cpp, file2.cpp. You could compile all of them in a single command:
+
+> g++ -o myprog.exe file1.cpp file2.cpp 
+However, we usually compile each of the source files separately into object file, and link them together in the later stage. In this case, changes in one file does not require re-compilation of the other files.
+
+> g++ -c file1.cpp
+> g++ -c file2.cpp
+> g++ -o myprog.exe file1.o file2.o
+
+

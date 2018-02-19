@@ -1,0 +1,78 @@
+howto_txt_030203:use traceroute command	/* traceroute a1_mf */
+howto_txt_030203:a1_mf
+howto_txt_030203:Sol> by add/create hosts.equiv ( a1_mf, a1_cha) to be logged in.
+howto_txt_030203:means that a1_mf and a1_cha can log in to this SUN.
+howto_txt_030203:use traceroute command	/* traceroute a1_mf */
+howto_txt_030203:erio <-------->a1_mf, all VMEs
+howto_txt_030203:therefore, robotAKT sent to a1_mf ----> redirect to 168.219.7.6(ACLS)
+howto_txt_030203:and set TRUE to see the debug message on the Kernel(a1_cha(d), a1_mf)
+howto_txt_030203:search a1_mf /bin/*
+howto_txt_030203:bin/setenv.run.mcc to find out a1_mf or a1_cha 
+howto_txt_030203:- how to execute function from a1_mf screen
+howto_txt_030203:- how to reset a1_mf CPU
+howto_txt_030203:>rlogin a1_mf in adt term
+howto_txt_030203:- how to suspend a1_mf
+howto_txt_030203:/* In a1_mf
+howto_txt_030203:		a1_mf>id = 99999    
+howto_txt_030203:		a1_mf>handld = 99999
+howto_txt_030203:				/* a1_mf>???Abort(handle) or ???Init(handle) */
+howto_txt_030203:        a1_mf>instStringToID("/cluster:1/chmbHeat:1/portHeat:x/liftElevator:lift/motorDcServo", & id)
+howto_txt_030203:		a1_mf>instCfgIDToHandle(id, & handle)
+howto_txt_030203:		a1_mf>motorAbort(handle)
+howto_txt_030203:- how to get ip address in a1_mf
+howto_txt_030203:0. goto a1_mf window
+howto_txt_030203:192.9.201.1 a1_mf
+howto_txt_030203:192.9.201.1 a1_mf
+howto_txt_030203:192.9.201.1     a1_mf
+howto_txt_030203_ing.txt:use traceroute command	/* traceroute a1_mf */
+howto_txt_030203_ing.txt:a1_mf
+howto_txt_030203_ing.txt:Sol> by add/create hosts.equiv ( a1_mf, a1_cha) to be logged in.
+howto_txt_030203_ing.txt:means that a1_mf and a1_cha can log in to this SUN.
+howto_txt_030203_ing.txt:use traceroute command	/* traceroute a1_mf */
+howto_txt_030203_ing.txt:erio <-------->a1_mf, all VMEs
+howto_txt_030203_ing.txt:therefore, robotAKT sent to a1_mf ----> redirect to 168.219.7.6(ACLS)
+howto_txt_030203_ing.txt:and set TRUE to see the debug message on the Kernel(a1_cha(d), a1_mf)
+howto_txt_030203_ing.txt:search a1_mf /bin/*
+howto_txt_030203_ing.txt:bin/setenv.run.mcc to find out a1_mf or a1_cha 
+howto_txt_030203_ing.txt:- how to execute function from a1_mf screen
+howto_txt_030203_ing.txt:- how to reset a1_mf CPU
+howto_txt_030203_ing.txt:>rlogin a1_mf in adt term
+howto_txt_030203_ing.txt:- how to suspend a1_mf
+howto_txt_030203_ing.txt:/* In a1_mf
+howto_txt_030203_ing.txt:		a1_mf>id = 99999    
+howto_txt_030203_ing.txt:		a1_mf>handld = 99999
+howto_txt_030203_ing.txt:				/* a1_mf>???Abort(handle) or ???Init(handle) */
+howto_txt_030203_ing.txt:        a1_mf>instStringToID("/cluster:1/chmbHeat:1/portHeat:x/liftElevator:lift/motorDcServo", & id)
+howto_txt_030203_ing.txt:		a1_mf>instCfgIDToHandle(id, & handle)
+howto_txt_030203_ing.txt:		a1_mf>motorAbort(handle)
+howto_txt_030203_ing.txt:- how to get ip address in a1_mf
+howto_txt_030203_ing.txt:0. goto a1_mf window
+howto_txt_030203_ing.txt:192.9.201.1 a1_mf
+howto_txt_030203_ing.txt:192.9.201.1 a1_mf
+howto_txt_030203_ing.txt:192.9.201.1     a1_mf
+org_howto_txt_030203_ing:use traceroute command	/* traceroute a1_mf */
+org_howto_txt_030203_ing:a1_mf
+org_howto_txt_030203_ing:Sol> by add/create hosts.equiv ( a1_mf, a1_cha) to be logged in.
+org_howto_txt_030203_ing:means that a1_mf and a1_cha can log in to this SUN.
+org_howto_txt_030203_ing:use traceroute command	/* traceroute a1_mf */
+org_howto_txt_030203_ing:erio <-------->a1_mf, all VMEs
+org_howto_txt_030203_ing:therefore, robotAKT sent to a1_mf ----> redirect to 168.219.7.6(ACLS)
+org_howto_txt_030203_ing:and set TRUE to see the debug message on the Kernel(a1_cha(d), a1_mf)
+org_howto_txt_030203_ing:search a1_mf /bin/*
+org_howto_txt_030203_ing:bin/setenv.run.mcc to find out a1_mf or a1_cha 
+org_howto_txt_030203_ing:- how to execute function from a1_mf screen
+org_howto_txt_030203_ing:- how to reset a1_mf CPU
+org_howto_txt_030203_ing:>rlogin a1_mf in adt term
+org_howto_txt_030203_ing:- how to suspend a1_mf
+org_howto_txt_030203_ing:/* In a1_mf
+org_howto_txt_030203_ing:		a1_mf>id = 99999    
+org_howto_txt_030203_ing:		a1_mf>handld = 99999
+org_howto_txt_030203_ing:				/* a1_mf>???Abort(handle) or ???Init(handle) */
+org_howto_txt_030203_ing:        a1_mf>instStringToID("/cluster:1/chmbHeat:1/portHeat:x/liftElevator:lift/motorDcServo", & id)
+org_howto_txt_030203_ing:		a1_mf>instCfgIDToHandle(id, & handle)
+org_howto_txt_030203_ing:		a1_mf>motorAbort(handle)
+org_howto_txt_030203_ing:- how to get ip address in a1_mf
+org_howto_txt_030203_ing:0. goto a1_mf window
+org_howto_txt_030203_ing:192.9.201.1 a1_mf
+org_howto_txt_030203_ing:192.9.201.1 a1_mf
+org_howto_txt_030203_ing:192.9.201.1     a1_mf

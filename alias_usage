@@ -1,0 +1,22 @@
+how to use alias
+
+1. vi ./bashrc
+2. add alias with #
+3. do source .bashrc
+4. try your alias to see working or not.
+
+most important rule
+usage must be this way
+NO SPACE between "=" and alias name
+alias abcde='skjsfkjsf'
+NOT alias abcde = 'askjfkdj'
+
+check vi .profile
+
+# Aliases
+#
+# Some people use a different file for aliases
+# if [ -f "${HOME}/.bash_aliases" ]; then
+#   source "${HOME}/.bash_aliases"
+# fi
+

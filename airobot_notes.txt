@@ -1,0 +1,41 @@
+﻿# AI Robot USA Notes
+1. How to install python module tensorflow
+C:\Users\y>pip install tensorflow
+    Downloading tensorflow-1.4.0-cp36-cp36m-win_amd64.whl (28.3MB)
+    100% |████████████████████████████████| 28.3MB 39kB/s
+    Requirement already satisfied: bleach==1.5.0 in c:\users\y\anaconda3\lib\site-packages (from tensorflow-tensorboard<0.5.0,>=0.4.0rc1->tensorflow)
+    Requirement already satisfied: werkzeug>=0.11.10 in c:\users\y\anaconda3\lib\site-packages (from tensorflow-tensorboard<0.5.0,>=0.4.0rc1->tensorflow)
+    Collecting markdown>=2.6.8 (from tensorflow-tensorboard<0.5.0,>=0.4.0rc1->tensorflow)
+    Found existing installation: html5lib 0.999
+        DEPRECATION: Uninstalling a distutils installed project (html5lib) has been deprecated and will be removed in a future version. This is due to the fact that uninstalling a distutils project will only partially uninstall the project.
+        Uninstalling html5lib-0.999:
+          Successfully uninstalled html5lib-0.999
+    Successfully installed enum34-1.1.6 html5lib-0.9999999 markdown-2.6.11 protobuf-3.5.1 tensorflow-1.4.0 tensorflow-tensorboard-0.4.0
+
+After this completion, copy tensorflow lib to you python library folder
+from: C:\Users\y\Anaconda3\Lib\site-packages
+to : C:\Users\y\Anaconda3\Lib
+
+Then, you can use tensorflow from your python script.
+****************
+
+2.how to install xlrd to python library
+1. open dos command window, then type pip install xlrd
+2. if lib like xlrd is not available, then copy xlrd from current dir
+ named c:\users\y\anaconda3\lib\site-packages
+to Python Lib director C:\Users\y\AppData\Local\Python\Python36-32\Lib
+****************
+
+3. How to make python script file to executable file as icon
+how to make executable python file like calculator
+open dos command line
+go to current python script file folder
+type pyinstaller calculator_2_good.py
+then under dist directory, you will see calculator_2_good.exe file
+That's it.
+****************
+
+4. how to execute python_prog.py from dos command
+type python python_prog.py
+that's it
+****************

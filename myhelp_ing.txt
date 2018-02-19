@@ -1,0 +1,305 @@
+
+/* Just information about using UNIX at school */
+1. edit tool & command
+        joe, pico, vi.
+2. Set terminal
+        type set to see my term setting.
+        tCommands a SiteStaff might need.
+The path and command are listed. Usually only the command needs be entered.
+
+/usr/afsws/bin/klog
+	Login to AFS space.
+
+/usr/afsws/bin/kpasswd
+	Change your AFS space password.
+
+/usr/bin/lpstat/lpstat -o<printer_name>
+	Check a print queue.
+
+/usr/local/bin/get_print_quota <user_name>
+	Get a users print quota and usage.
+
+/opt/hpnp/bin/jetadmin
+	Monitor a printer.
+
+/afs/ece/support/printing/quota/set_print_quota <user> <printer> +<amount>
+	Modify a users print quota.
+
+/usr/local/bin/super killuser <user_name>
+	Log a user off.
+
+/usr/local/bin/super shutdown
+	Shutdown the computer you are logged in on.
+
+
+/usr/local/bin/super dtlogin.rc stop
+/usr/local/bin/super dtlogin.rc start
+	Clear a froozen or locked screen.
+
+/usr/bin/who
+	See who is logged in on a system.
+
+ype "set term=vt100 or xterm" to change terminal.
+3. To display file : cat/more/page/head/tail.
+        more -f [+line No] {filename}, cat filename, page -f [+line No] {fname
+ head -n fname 
+4. To copy/paste
+        cat filename1(to copy) filename2(destination).
+        cp -i oldfname newfname, -i:if newfname already exists.
+        cp -ir                 , -ir: dir.
+5. copy
+        cp ~dir/dir/* .(copy whole file in current dir).
+        cp -r ~dir/dir/ . (copy whole including subdir).
+
+6. Using > <, >> <<.
+        echo "1 *weriorwr" >input ("1 *weriorwr" saved to input file).
+        a.out < input > result (get input data to a.out and then save to the
+result file).
+
+7. man command
+        type man command( that I want to know).
+8. cd p+TAB Key
+        display automatically program if i have program dir.
+9. cat usage
+        cat > fname : can type anything, press ^D to exit.
+10.rsh : to access other host. To see more man rsh
+11. GNU Emacs 19.34.1
+	Type C-x C-c to exit Emacs.
+	Type C-h for help; C-x u to undo changes.
+	Type C-h t for a tutorial on using Emacs.
+	Type C-h i to enter Info, which you can use to read GNU documentation.
+	('C-' means use the CTRL key. 'M-' means use the Meta (or Alt) key.
+	If you have no Meta key, you may instead type ESC followed by the character. )
+12. Printing.
+	lp -o nb -o duplex -o 2+ filename
+	[-o:option, nb:no cover page, duplex:both side,2up,2+: each half page,
+	  nb -o duplex -o 2up filename]
+    To see my printer :	 echo $LPDEST
+    To change my printer:setenv LPDEST LJxxX
+	xxxx can be either: 1101, 2107,2212
+    To cancel printing : cancel printer_job#  ex)cancel LJ2212-415
+    To see status : lpstat LJ2212, 1101.
+    To print out both side such as PDF file type "lpr -oduplex -dLJ2212" no space
+13. Print command in the box : lp -dLJxxxx; 2212,2107,1101 
+14. rwho | more : to see everybody who logged in.
+15. talk talk_party ttyname
+   ex) talk warbler:kuowei
+  SYNOPSIS
+      talk talk_party [ttyname]
+  DESCRIPTION
+      The talk utility is a two-way, screen-oriented communication program.
+      The command argument talk_party can take one the following forms:
+                     user
+                     user@host
+                     host!user
+                     host:user
+                     host.user
+      where user is a login name and host is a host name.
+ talk warbler:kuowei
+ 16. ytalk : to allow more than one person.
+    ex) ytalk mjliu@sturgeon,
+17. To check print quota
+ get_print_quota yhwang(log in name)
+18. To enjoy game.
+  Type cd /pkg/games/bin and then type one of the command.
+19. To use WrodPerfect 4.2
+  Type cd /pkg/wp60/  ... then execute xwp*
+
+20. Useful setup files : type cd /usr/local/setup/
+    [pwd
+     /afs/ece.ucdavis.edu/common/usr/local/setup
+     skate<35> cd ~ ]
+21. to decompress .zip 
+   just type unzip -x filename
+22. to execute some modified file
+   just type source .tcshrc
+22. to see what's going on about something I execute
+   ex) I execute xmath but no response so long time.
+   type: ctrl + c then xmath& 
+23. vi command:
+   ZZ: save and quit vi
+  :w + enter:save file,but do not leave vi
+  :q! + enter:Quit vi without saving
+  a :insert after cursor
+  i :insert text before the cursor
+  x :delete
+24. about "tex"24. about "tex"
+   type <return> to proceed, S to scroll future error messages,
+   R to run without stopping, Q to run quietly,
+   I to insert something, E to edit your file,
+   1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+   H for help, X to quit.
+25. xmath& (to use same window in some application)
+26. to use general windows command in Matlab windows
+	type !ls, etc.
+27. to execute Arcobat Reader
+	type acroread
+28. to open .ps file
+	type gv
+29. to change permission
+	type chmod 777 filename
+   chmod 100 - 777 filename
+   -_________
+   -:file, d:directory
+   first_3:me, second_3:group, 3rd_3:world
+   1st:read, 2nd:write, 3rd:execute
+   r:4(2^2), w:2(2^1), x:1(2^0)
+   
+   e.g. -rwx______ abs.ps
+   chmod 444 filename: then -r__r__r filename
+   e.g. a: is composed of executible text only.
+   chmod 777 a : then -rwxrwxrwx a
+   chmod 100 a : -__x______ a: only i can execute
+pt) In web browser, ps file are forbidden because permission.
+	
+30. to see a file detail
+	type ls -l filename
+31. to disable these auto-replys in the future, 
+	type "touch ~/.reqsilent"
+32. to log in fast computer 
+    type rxt terminal name. ex rxt flounder, soul,
+albacore,tarpon, dante, skate 
+33. to draw grpahic
+    type xfig, xv(xview)
+34. ls -ol to see omitting classes
+35. latex command to change output to ps file
+   dvips all.dvi -o fname.ps
+   latex all : compile,  xdvi all : to see ps file type
+36. Matlab to save figure to ps file for Latex "print -deps -loose
+fname.ps
+37.to execute multiple command in one line
+   use ";" like ls; cd yhwang
+38. xemacs : easy to see the { } 
+39. to find word
+   grep help *.txt or grep control *.*
+40. To print Text file includint page #
+    >enscript -2Gr -P LJ2212 filename
+41. useful option
+    > lp -ooptions filename
+42. type "top" to see the real situation of each machine.
+43. ftp...
+	open, user, bye, bin:to prevent breaking files by changing binary.
+	get: bring the file to the dir. from ftp dir.
+	
+44. to make auto reply mail
+	pleae refer to "man procmail",   # to know more, type "man formail"
+45. to know about procmail
+	type "man procmailsc" or "man procmailex" - example
+46. to see the last tail part of some files.
+	type "tail filename"
+47. to compile c++
+	type "g++" and a.out like c to execute
+48. to find which command I use
+	type "which command"
+49. to refer root directory
+	type "~/filename" ~/ means root dir
+	../ means one upper dir.
+	./ means lower dir. 
+	move one file to another dir. -> e.g.: mv filename ./dir_name/. 
+50. to zip files
+	type gzip, gunzip filename.
+51. to see all directory
+	type ls -al |more
+52. to send mail
+	type mailx name i.e. mailx yhwang
+	at the end press ctrl + D
+53.
+The grep command does pattern searching. This command will display every line in the file greetings.txt that
+contains the pattern hello. 
+	% grep hello greetings.txt
+54.
+This command will list all the files that begin with the character 0 through 9 and end with the character string
+".txt". Wildcards can be used in any Unix command. They are not limited to the ls command.
+	% ls [0-9]*.txt
+55.
+The wc command with the -l option gives you a count of lines. This command will pipe the output of our ls -l
+command to the wc(word count) command giving us the total number of files and directories in our current
+directory. 
+	% ls -l | wc -l
+	29
+	%
+56.
+The rusers (remote users) command is used to determine the other users on your network. The command will
+continue to search for more users on the network until you use the <CTRL-c> key to quit.
+	%rusers
+	creek.eel.ufl.edu thorn
+	crow.eel.ufl.edu  ychen
+	navaho.eel.ufl.edu  hsiao
+	<CTRL-c>
+57.
+The finger command is used to get information about users on the system. If you use finger without any
+arguments you will get a listing of the users who are currently using the local machine. 
+	% finger scot 
+58.
+You can send mail to several people by adding their name to the command line. If you had already had a file that
+you wanted to send you can redirect the standard input. 
+	% mailx scot john sue < article
+	%
+59.
+The du (disk use) command recursively displays the amount of disk space (in blocks) used in each directory. The
+-s (summary) will display the total blocks used by each directory and the -a (all) option will list filenames. 
+	% du -s *
+	654     tutorial
+	%
+60.
+The find command recursively descends a directory locating all the files that meet the criteria given on the
+command line. Without any options the find command will take no action on the files it finds, so the -print
+option is used to write the found files to standard output. The format of the find command is: 	
+	find path_name_list [options] 
+	Where path_name_list is one or more directories. 
+	% find . -name Makefile -print
+	/home/huron2/admin/scot/tutorial/Makefile
+	%
+61. 
+The compress command is used to reduce the size of a file. Compressions often save as much as 30-80 percent of
+the original space, however you must uncompress files before they can be used. If file compression is possible the
+suffix .Z will be added to the end of the file to indicate it it is compresses. 
+
+% compress -v tut.tar
+tut.tar: Compression: 78.19% -- replaced with tut.tar.Z
+% ls -l tut.tar.Z
+-rw-r--r--   1 scot     admin      79883 Mar 30 16:02 tut.tar.Z
+%
+
+The -v (verbose) option is used to list the amount of compression. 
+
+The uncompress command has the same syntax as compress. 
+
+% uncompress tut.tar.Z
+% ls -l tut.tar
+% ls -l tut.tar
+-rw-r--r--   1 scot     admin     337920 Mar 30 16:02 tut.tar
+%
+
+Recently some sites have been using a new compression program. The GNU zip and unzip programs are being
+used because they offer a more effective compression algorithm. The gzip (GNU zip) command will compress a
+file and the gunzip (GNU unzip) will decompress a file. 
+
+% gzip -v tut.tar
+tut.tar:                 82.4% -- replaced with tut.tar.gz
+%
+62. 
+The history command will give you a
+complete list of your previous commands. 
+<soul : /home/yhwang 41>history
+    22  7:57    ls
+    23  7:57    rd
+    24  7:57    dq
+    25  7:57    rxt albacore
+    26  8:00    grep mail.txt
+    27  8:05    ps
+<soul : /home/yhwang 42>!24
+dq
+Disk quota for yhwang:
+Filesystem     usage  quota  limit    timeleft  files  quota  limit    timeleft
+/.homes/19    52380  60000  65000               2125      0      0            
+
+Type "/usr/local/bin/diskquota" to view current usage.
+
+63. pg and more are similar
+	to see the file, type pg filename.
+64. echo $SHELL
+	to see which shell we use
+65. homehost
+	to find home host
+66. 

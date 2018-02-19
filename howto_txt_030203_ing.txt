@@ -1,0 +1,3271 @@
+Upgrading Solaris 8 from Solaris 2.6 based on Ultra 5
+assume that we do upgrade Ultra 5 without extra SUN
+
+## how to use max_reated_power EC for rfgen
+this EC is to be used for the following formula:
+	(setpoint power) / ( 7.5k-max_reated_power) = Voltage / 5 volts
+	max_reated_power*Voltage = (setpoint power)*5
+therefore, max_reated_power == 7500, then Voltage is as larger as 10000/7500
+compared to the max_reated_power = 10000.
+
+## how to find out correct route for using ping
+use traceroute command	/* traceroute a1_mf */
+
+## how to fix ping problem from SUN to Vx CPU/cpu
+<sympton: RUN LED is ON all the time and cannot do ping>
+<usually means that CPU cannot download kernel>
+vi /etc/hosts.equiv
+a1_mf
+a1_cha
+Sol> by add/create hosts.equiv ( a1_mf, a1_cha) to be logged in.
+vi /etc/hosts.equiv
++	/* means that can log in anyone */
+
+means that a1_mf and a1_cha can log in to this SUN.
+that's way cpu can download kernel from SUN.
+
+use traceroute command	/* traceroute a1_mf */
+
+## how to delete/use datafix
+ps -eaf |grep datafix
+goto config
+datafix -grp diag_comm_grp -write
+cmd>> wgs
+cmd>> w_del wafer:AAAA
+cmd>> waferExit wafer:AAAA
+cmd>>full_help
+cmd>> jobs_del_all	: delete all db
+cmd>> cmd>>> ch_get_w /cluster:$1/chmbHeat:$1
+cmd>>> ch_set_1w /cluster:$1/chmbHeat:$1 wafer:MT 5  
+TIME: 08 Nov 02 12:59:48:815, ERROR in module=idsvc_cwrap.c, file=/aktvol/rls/15_8d/config/gen/idsvc/src/idsvc_cwrap.c, function=CallIdServer, line=650, err_no=12
+ -> The id-server's proc "GetInfoByPath" had failed with STATUS 12
+TIME: 08 Nov 02 12:59:48:816, ERROR in module=inst, file=/aktvol/rls/15_8d/config/gen/ninst/src/inst_set.c, function=instSetIDByData, line=546, err_no=12
+ -> NO_SUCH_INSTANCE; classiD = 0x18, 24, Name = "wafer:MT"
+chmbSetWafers returns 0
+cmd>>> ch_set_1w /cluster:$1/chmbHeat:$1 MT 5
+chmbSetWafers returns 0
+cmd>>> wgs
+
+
+## how to fix run.mcc -ch from real machine such as cannot abort chmbHeat
+goto current_rls/db_update/CURRENR_RLS
+vi CURRENR_RLS
+and copy slotMgr part from chmbHeat
+* instStringToID() will get the first instance from cdf directory.
+* -l reboot will put all cdf to ID server.
+
+
+copy to current_rls/mcc.icf
+
+and remove all slotMgr from calibration.icf
+
+run.mcc -l -e
+
+## how to display wired character from vi
+:l
+
+
+## how to find out ascii character
+type man ascii
+
+##how to find parameter for icf file ifdef
+go to current_rls/config/build/Build_Config_LOG 
+then Build_Config_LOG shows all the parameters.
+
+##how to find class from class ID and other notes on 101002 
+1. ** find class 
+goto db directory
+idgeninfo dbicf -p : will show all instances
+
+idgeninfo dbicf -p | grep TREE name/number
+example)
+		/usr1/amat/15_8d/db
+		idgeninfo dbicf -p|grep 33673216
+      794:   0x0201d000 33673216 [01:00e8:000]       "/cluster:$1/chmbHeat:$1/tempdevMultiht:htr_multi/htrCh annel:$5"
+
+2. ** replace the word in vi
+:1, $s?/chmbLLVac:?/chmbLLVacLGP:?/g
+?: delimiter like /
+this will replace /cluster/chmbLLVac:/ to /cluster/chmbLLVacLGP:/
+
+3. ** foreach
+goto obj/vx dir
+	foreach f (*Lib.o)
+	> nm68k tcpConnection
+	> echo ==========
+	>end
+this will display all the Lib which using tcpConnection
+
+4. ** :e # meaning
+in vi :e # : # means alternatively back and forth
+
+5. ** vi 'grep aaa'
+means that vi of the result of grep aaa
+
+to copy and paste from a.c to b.c
+----------------------------------
+a. put cursor in line 100
+	press ma		/* mark this line to a */
+b. put cursor in line 200
+	:'a,. w /temp/xx		/* from a to .(current) and write to /temp/xx *
+	all dir have /temp dir
+c. open b.c
+d. move to destination for pasting
+	:r /tmp/xx		/* read /tmp/xx to current line */
+
+to monitor LOG 
+---------------
+tail -f SECSII_LOG
+
+
+to replace
+----------
+a. :'a,.s/chmbLL/chmbLLVac/
+
+to debug / gdb from actual system
+---------------------------------
+a. copy router/src to real machine
+b. chown amat hongbin
+c. chmod -R amat hongbin
+c. mv home home1 since permission denied
+c. mkdir honbgin
+
+gdb /obj/sparc/cluster
+(gdb) b rtr_job.c:2155
+(gdb) attach
+(gdb) c
+(gdb) p 	argument (example p router_acls_num_sub) /* to print argument */
+(gdb) n  /* next line */
+(gdb) clear rtr_job.c	/* to clear */
+
+to use previous filename
+-------------------------
+a. vi A.c
+b. vi !$		/* same as vi !A.c
+
+6. vxWorks
+to load	ld < Lib.o
+to reload reld <Lib.o
+
+to display memory mem for address
+----------------------------------
+> d add_no
+
+7. cmd_file
+when chmbLLVac:acls_service is not allowed for executing, go to current_rls/data/cmd
+added ll_cmd_file, ul_cmd_file
+;command_code
+faultMgr:x;alarm_status
+process:x;processcommand
+;acls_service
+END
+
+8. about calling same attribute at the same time
+There is no guarantee that both calls are executed.
+Better way is that allocate/copy all structure to be used by caller as this example
+Not to have bad luck by multiple caller at the same time	(Inchen)
+------------------------------------------------------------------
+in secsMain.c
+amtCHAR_P func_name = "secsSetAttr";
+
+secsPhyMoveOBJ* phyMoveOBJ_p;
+
+case secsSUB_PHYSICAL_MOVE_ATTR_ID:
+      {
+         /* Every call to this will allocate a work space. */
+         if ((phyMoveOBJ_p = (secsPhyMoveOBJ *)malloc(sizeof(secsPhyMoveOBJ))) == amtNULL)
+         {
+            errorReport0(secs_err=secsINTERNAL_ERR, "Fail to malloc secsPhyMoveOBJ");
+         }
+         else
+         {
+            if (attrGetAllFields(secsSUB_PHYSICAL_MOVE_ATTR_ID, value,
+               &phyMoveOBJ_p->action,
+.......
+
+9. About COMMAND MAIN LOOP
+problem: in chmbLLVacQDI. when secsii_sem semTake....
+secs module is chmbLLVacQDISetAttr. then all task in chmbLL is blocked and nothing is working
+until timeout of secsii_sem. 
+scenario>>>
+	a. secsii_sem semTake
+	b. secs commandCmdSetAttr (chmbLLVacQDISECSII_STATUS_ATTR_ID)
+	c. hanging there
+	d. all are executed after secsii_sem timeout
+robotVirtual is using same method as chmbLLVacQDI but this doesn't happend.
+Why: robotVirtual is using amtTaskSpawn, which means that when command receives and task/process,
+command decides whether that task/process is put to command or message Queue or execute command 
+right away and become available for the next task/process coming.
+
+Why>>>
+	there is COMMAND MAIN LOOP in chmbLL_Task and there is no TaskSpawn is running.
+	therefore all the task is done by command ONLY.
+
+OBJ of command: COMMAND need to free always to take next task/process.
+
+Solution>>>
+	Create message Queue in chmbLLVac to spawn tasks such as SetAttr.
+
+end of  COMMAND MAIN LOOP
+
+9.5 About taskRestart()
+** usually Abort function needs to do taskRestart and clean up messageQ.
+
+ in chmbLL.c
+	a. When chmbLLAbort is executed, then taskRestart is called as well.
+	b. taskRestart is to do Abort/Stop current task and use same TaskID, options, 
+		original entry point, stack size, and parameters it had when was terminated.
+		And then use same TaskID for next task from messageQ.
+	c. ...executing next task in taskSpawn.
+Inchen and Paul on 102202.
+
+
+10. About RPC
+--------------
+	wafer_mgr_svcLib.o			wafer_clnt_wrap.c
+waferGetAttrRpcSvc( )		wafer_clntLib.o
+{
+waferGetAttr(, , );
+	cdoes here
+
+}
+
+wafer_clnt_wrap.c
+	wafer_clntLib.o
+	{
+		waferGetAttrRpcClnt(, , ,);
+		---------------------------
+
+	}
+
+in chmbLLVac, 
+	waferGetAttr(id, attr_id, value_p)
+
+between waferGetAttrRpcSvc() and waferGetAttrRpcClnt() is defined in .x or .xdr file.
+
+11. when pressure difference between xfer and LL/UL error occur,
+
+Check out these value to make same.
+
+vauumMF:x/prsg:gauge/asense:m - pressure_result
+vauumMF:x/prsg:gauge/asense:ctron - pressure_result
+
+to open fast vacuum earlier than 500 mTorr OR at the same time with slow vacuum in LL/UL
+change vacuumMF/rough_up_press  to 800000
+
+
+********** end of RACLS **************
+
+##how to list up who login in my terminal
+w
+
+##how to link dir in 152.135.67.9 to my terminal
+use mount
+
+
+##how to tar directory
+tar cvf tar_filename dir_name
+
+##how to compile without tft server
+you need to copy some files from tft server to your workstation.
+1. copy bx50, rdm, TT_DB, wind, xrt under /aktvol  to /usr1
+2. make /usr1/rls directory
+3. copy bin, contrib, data, DEVELOP_TOOLS to /usr1/rls
+4. copy release(ex. 15_9c) to /usr1/rls
+5. make a symbolic link.
+	> cd /
+	> ln  -s  /usr1  aktvol
+6. source  /aktvol/rls/bin/offsite_dev_env
+7. enter release
+
+## About didoApc DI DO
+a.DIDO
+	- pin_board_num:
+	- pin_type: 1 - DI, 0 - DO
+	- pin_number:
+
+b. AIAO
+	- channel_mode: 0 - 1~5, 1 - 0~5, 2 - 1~10, 
+	- chan_number:  
+example:
+	CHMB_1/aiaoAmt1:$chiller_temp_ai;board_num           0
+	CHMB_1/aiaoAmt1:$chiller_temp_ai;chan_number         22
+	CHMB_1/aiaoAmt1:$chiller_temp_ai;chan_mode           0
+	CHMB_1/aiaoAmt1:$chiller_temp_setpoint;board_num           0
+	CHMB_1/aiaoAmt1:$chiller_temp_setpoint;chan_number         12
+	CHMB_1/aiaoAmt1:$chiller_temp_setpoint;chan_mode           2
+chan_mode: 0 - 1-5
+
+c. how to apply board_number and chan_number from Electrical group's IO LIST
+in IO list
+	signal_name		type		brd#		pin #		ch #		IN 	style		
+  Ready_To_Load	DI			4			145		4					MF NTWK
+	brd#: slot # in VME
+		if brd# is 0, mux_frame:0, mux_dido, we need to ask Electrical group for whether
+					they use mux or not for us to declare TRUE/FALSE
+	ch #: mux frame : 4, mux_dido: TRUE
+For 5500, 1600, 10K, 15K, there is only on APC Network card, so for us borad_num is always 0.
+
+meaning of these
+in software icf file, chmbLL_LL.icf case
+	CHMB_LL/chmbLLVacLGP/DIDOAPC_MOD:load_ready_di;mux_frame       4
+	CHMB_LL/chmbLLVacLGP/DIDOAPC_MOD:load_ready_di;mux_dido        TRUE
+	CHMB_LL/chmbLLVacLGP/DIDOAPC_MOD:load_ready_di;pin_board_num   0
+	CHMB_LL/chmbLLVacLGP/DIDOAPC_MOD:load_ready_di;pin_number   144
+	CHMB_LL/chmbLLVacLGP/DIDOAPC_MOD:load_ready_di;pin_type     1
+Thank you James.
+
+
+##how to find devices lists at cpu CPU VME vme
+-> devs
+
+# 
+/vol/local/bin/phones name
+
+
+##how to know what task is running for fopen
+ps_loop at the scripts
+run.mcc has defined log file size to keep 
+
+
+
+##how to find .c file which contains "AAA"
+tft40:/aktvol/rls/15_8b>find . -name \*.c -print
+
+tft40:/aktvol/rls/15_8b>find . -name \*.c -exec grep AMAT {} \; -print
+Thanks Cho bjn.
+
+
+prepare one blank tape
+## back up ##
+1. dump data base mcc.icf
+2. backup all that I need such as etc's hosts and usr1/amat
+2.0 insert the blank tape 
+2.1 tar cvf /dev/rst4 * usr1/amat
+2.2 tar tvf /dev/rst4 to see items in the tape
+
+## Install Solaris 8 ##
+3. put Solaris 8 CD
+3.1 follow procudure
+
+4. Press Stop + A, this brings you to ok and Enter
+5. In the # prompt ># boot cdrom -s
+
+## Install Solaris 8 Ultra 5 system tape ##
+6. Insert Solaris 8 Ultra 5 system tape
+7. tar xvf /dev/rmt/0
+New tape drive (dds 4) SCSI setting
+if SCSI setting: 5		tar xvf /dev/rmt/1
+if SCSI setting: 4		tar xvf /dev/rmt/0
+
+8. ./install
+9. y, y (dump 40 min), y ( dump 2.8 20 min)
+10. wait for ok prompt
+11. boot -r, after system shuts down and prompt to ok
+
+## Restore backup tape to SUN after installing Solaris 8 ##
+12. login service
+13. Insert backup tape to tape drive
+14. tar xvf /dev/rmt/0
+15. execute source bin/machine.init
+
+## Regurar Upgrade ##
+16. Insert 15_8a tape to tape drive
+17. ./mccinstall -c 	like upgrade
+18. same as before.
+
+## how to find functions from objects file
+nm68k *.o			for vw68020
+nm		*.o			for sparc
+					symbol table format
+nm command can be found at /aktvol/wind/host/sun4-solaris2/sparc-sun-solaris2.5.1/bin 
+
+## how to put old release back
+1. mccinstall -s
+2. choose the one that you want to put back as current_rls
+3. exit
+4. login amat
+
+### How to fix when error happened during cfg, db loading
+When mccinstall -c fails while loading cfg, db
+1. source current_rls/bin/machine.init this let me use mccinstall -s
+2. mccinstall -s
+3. after put original back
+4. EXIT xterm
+5. Login amat
+6. After problem found
+7. Do mccinstall -c
+8. At bcm option, copy/modify/fix problem
+9. done
+
+### About exhausting switch and gas control
+from James
+G: General, P:Pyro, 	O:Oxy
+Possible combinational ways of flowing gas
+
+gas_type					exhausting_switch
+----------			 -------------------------------	
+G		P		O	||		P		G		Oxy	Pyro_teos
+x		x					ok	   pump
+		x							down	
+									only   
+x											ok
+				x							ok
+x				x							ok
+
+Exhausting_switch
+-----------------
+Pyro
+General: pump down air only
+Oxy
+Pyro_teos
+
+possible ways of flowing gas
+-----------------------------
+no exhaust_sw:0
+2 exhaust_sw :	P + O
+3 exhaust_sw : P + G + O
+4 exhaust_sw : ALL
+
+purge		final valve
+	432-36
+sum of 432 == sum of 36
+### About motorMei in LL/UL about 10K / 15K
+LL use home limit sensor and positive limit sensor
+UL use home limit sensor and negative limit sensor
+
+About clamp, slot_offset
+calculation: xchg - slot_offset
+		clamp		slot_offset		highest_point		lowest_point
+UL		-300000	175000			-500000				+500000
+LL		300000	-175000			500000				-500000
+this way we can use clamp offset, and slot_offset
+
+
+RUN.MCC, UNIX, TEMPLATE, FUNCTION
+- how to do network address transaction
+->routeNetAdd "168.219.7.0" ,"192.9.201.11"
+168.219.7.0: ACLS IP address:168.219.7.6
+
+other commands: 
+	routeAdd " ", " "
+	routeShow
+	routeDelete
+from mf.short
+	routeDelete "192.9.201.0", "192.9.201.11"
+	routeAdd "192.9.201.0", "192.9.201.1"
+	hostRead()
+* to find out how to direct (network address transaction)
+goto /etc/opt/ipf
+
+adt hostname.eri0	(primary)	192.9.201.11
+acls hme0				(second)		168.219.7.6 (ACLS IP)
+
+SUN
+erio <-------->a1_mf, all VMEs
+
+168.219.7.6   192.9.201.11
+------- HUB -------
+       |		|
+		ACLS  SUN(hme0)
+				SUN(eri0) routeNetAdd "ACLS IP", "192.9.201.11"
+therefore, robotAKT sent to a1_mf ----> redirect to 168.219.7.6(ACLS)
+
+- how to use cfgGetAllSubInstOfClass
+this returns all sub instances of the class
+	cfg_error_code = cfgGetAllSubInstOfClass (root_id,
+                ( classID ) SECS_CLASS_ID ,
+                &inst_ids_list_hnd,
+                &list_delete_function);
+classID is based on 15_0a/data/cfg/cfg_classes file
+
+after getting instID
+instIDToString( event_p->port_inst_id, chamber_name );
+strstr(chamber_name, "LL"); to check whether chamber_name is either
+/machine:one/mportmgr:$LL or /machine:one/mportmgr:$UL
+
+
+- to get infor for run.mcc
+>run.mcc -h
+
+- how to compile cas module
+
+make clean;init
+make lib uid
+
+When working on mportmgr and added new event and ECs
+then MMI event screwed up,
+to fix this 
+search mportmgr.cdext from config/mmi, config/cc, 
+and browse out all modules that used mportmgr.cdext
+and compile with current mportmgr.cdext
+and compile MMI
+then try again.
+
+
+- how to compile src/*.x file
+in case .x file use "make svc" and "make clnt"
+make
+make svc    server / service
+make clnt   for client
+
+i.e. wh
+obj/sparc
+wh whLib_svc.o whLib_clnt.o wh_client
+this case
+make svc, make clnt, make wh, make wh_client to create wh and wh_client
+
+i.e. change chmb module
+1. browse out ch_exe
+2. modify Makefile of ch_exe to make link chmb
+3. make svc and make clnt
+4. make install_products in ch_exe and hit enter key
+5. ftp chmbCmdLib.o to machine
+6. usr_big_lib
+
+- how to compile chmbLL, 
+do same as chmb like make svc ;make clnt
+then you will see _svc.o and _clnt.o
+
+but remember if I changed structure of chmb, chmbLL, then I need to compile 
+chmbLLAtm, chmbLLVac and put chmbLLAtmLib and chmbLLVac together to obj/vx
+
+
+- how to compile slotMgr
+in obj/vx dir
+ld68k -r -o chmbCmdLib.o chmbLib_svc.o serviceLib.o slotLib.o slotDelayLib.o slotMgrLib.o portLib.o liftLib.o
+
+- how to compile router, cluster
+1. co router, cc_exe, cluster(if necessary)
+1.5 make in router dir after modification router module
+2. modify cc_exe/cluster_makefile file to refer to 
+cluster_LDLIBS =  ./obj/cluster.o \
+        ../router/sparc/routerLib.o \
+      $(LIB_OBJ_DIR)/clusterLib_svc.o \
+      $(LIB_OBJ_DIR)/commandLib_svc.o \
+      $(LIB_OBJ_DIR)/reporterLib_svc.o \
+      $(LIB_OBJ_DIR)/seqMgrLib_svc.o
+3. go to cc_exe
+>make in cc_exe dir
+4. make cluster in cc_exe dir
+5. cp cluster to sparc dir
+6. check permission of cluster file
+
+*** RUN.MCC ***
+- how to exit infinite loop of hb_server
+
+hb_server has infinite loop because of /config/calibration.icf file that
+ has previous configuration data i.e. doesn't match. so how to come over
+ delete for not selecting chambers' lines
+ About /tmp_last/CFG_LOG.1~no tells what is wrong for run.mcc 
+
+- how to make start_kernel_heater to bin directory from start_kernel_heater.master file
+goto /config/tools/cfga_tools/src/
+modify cfga_common_rules.mk, install_new_config.mk
+refer to start_kernel_heater
+
+- how to find out what OS is running
+>uname -a
+SunOS tft40 5.8 Generic_108528-12 sun4u sparc SUNW,Sun-Blade-100
+
+man uname
+- how to check out/in
+/* refer p2-task */
+- how to to execute run.mcc -z from my computer
+/* refer to p2-task */
+
+/* to execute run.mcc -z from my computer */
+0. I am in akt10
+1. rlogin/telnet tft28(lab hostname)
+2. login as amat or service
+
+At adt window
+<adt:>ps -eaf | grep hbserver	/*to check who is running now */
+<adt:>ps -eaf | grep run
+<adt:>setenv DISPLAY akt10:0.0	/*0.0 means main screen */
+go back akt10 window
+<adt:>usr_big_lib mf
+<adt:>run.mcc -z
+
+At the akt10 window
+akt10>xhost +
+showing "access control disabled, clients can connect from any host"
+======= End of section  =========
+
+- how to use GetAttr(), SetAttr(), and CheckAttr(), NotifyECChange()
+/* refer to p3-task */
+
+- how to change INCPATH
+/* When make is executed,, its path is not corretc: Then we can change the path
+>vi Makefile
+adding INCPATH += -I ../proj3/slot/inc (after -I no space between -I and ..)
+INCPATH += -I../proj3/slot/inc => O.K.
+
+we cannot test our modification because 4_X version does not attach motor.
+so we copied our object files and asc file of slot and liftElevator module
+*/
+
+- how to make intlk effective instead of using "bcm"
+modify and
+intlk_check -f intlk_filename
+
+/* We need to use "bcm" for making *.intlk.master files active
+but there is a way of making one editted intlk file(curr_vxSimulator/data/intlk/)eff
+ective
+i.e. LL.intlk.master
+copy editted part to ll.intlk (data/intlk/) and then run mcc
+*/
+
+- how to find intlk files
+/* /aktvol/rls/5_5d/plt_exports/config/build/lego
+or under /data/
+*/
+
+- how to make backup of mcc.icf
+
+goto config
+	source bin/machine.init
+	config>cp mcc.icf mcc.icf.backup
+	config>cfg_client -grp cfg_client
+	cfg>write NULL mcc.icf(anyfname)   /* bring all current ECs to mcc.icf */
+		original mcc.icf has a first ECs but the important ECs running now
+		are in database so we need to dump
+	cfg>quit    /* to go back xterm */
+Rename mcc.icf.backup for putting back purpose after finishing my work.
+And cp mcc.icf.backup to mcc.icf that I will use for my work.
+* the mcc.icf file is junk already because this file is not effective any changes after
+the machine booting up. therefore we need to dump dump dump...
+
+check Glass status information and then write them down
+before use run.mcc -l /* delete whole information */
+
+- how to check whether chmbCVD creates safecon or not
+	check chmbCVD.c - No
+	chmbCommon.c    - No
+	chmb.c      - NO
+	chmbXfer.c  - No
+
+- how to activate mcc.icf after changing
+	run.mcc -l
+
+- how to activate loading script after changing :mf, cha,chb,chc,chd
+	usr_big_lib Before exit MMI
+
+- how to reboot a single chmb
+	after editting chb-> usr_big_lib chb
+	make sure close All windows
+
+	cd current_rls/tmp
+	>more al_chb_LOG
+	we can see arrow ->
+		->
+		->
+		->
+		-> <chb.short   /* last one */
+
+	kill chmb b by pressing reset
+
+	open another xterm
+		>rlogin al_chb
+		>put -> based on a1_chb_LOG
+
+		then wait this window finish
+OR
+adt%> cd current_rls/tmp
+adt%> ./a1_chb_VXLOAD
+same as the first method.
+
+- how to know which one we have to include either .ext or .cdext
+/*  .ext : includes functions
+	.cdext: some address definitions
+i.e.
+FILE: "chmbCVD.cdext"
+*
+* DESCRIPTION: This file includes definitions that were extracted from
+*              file "chmbCVD.cdf"
+*/
+
+- how to make effective .object file, .cdf.asc file
+.o : usr_big_lib mf cha chb...
+.cdf.asc:run.mcc -l -n -z
+
+- how to fix safecon wired error/bug */
+8.7 Fix safecon module an all release (4_0c/5_5d/10_0a/3_0a)
+Problem line 532 of safecon.ext has wired   */
+
+solution: Inchen fixed it!!!!!!!!!
+In safecon.c
+First: Insert the following in the FILE HEADER:
+  398   * INTERNAL MODULE DESCRIPTION:
+  399   *
+  400   * DESCRIPTION:
+because from EXTERNAL MODULE DESCRIPTION
+	  to INTERNAL MODULE DESCRIPTION
+some function is going to look for INTERNAL MODULE DESCRIPTION to end/stop
+but since safecon.ext has no INTERNAL MODULE DESCRIPTION.
+they don't know where it ends.
+
+Second: move the following typedef in safecon.ext from PRIVATE TYPE DEFINITION
+	  TO PUBLIC TYPE DEFINITION
+  and delete previous one in PRIVATE TYPE DEFINITION section.
+  524  /* PUBLIC TYPE DEFINITION */
+  525
+  526  typedef enum
+  527  {
+  528     NO_START,                /* none of the following */
+  529     TASKS_WD,                /* activate the watch-dog on
+  530                               * the monitor and idle task */
+  531     WRITE_TO_HOST,           /* write to host via the socket */
+  532     TASKS_WD_AND_HOST_NOTIFY /* both of the above features */
+  533  } safeconSTART_MODE;
+because if some typedef in PRIVATE TYPE DEFINITION is going to create safecon.lh
+if some typedef in PUBLIC TYPE DEFINITION is going to create safecon.ext
+
+- how to know which version is what machine/release
+>cd /vol/rlst ; ls
+3_0a         c2_0b        doc          e2_0c_p      h2_0x        p2_0b        stubs_tft
+3_0b         c2_0c_p      e1_9p_patch  e2_0d        m4_0a        p2_0c        t2_0a
+P1_6a5       c2_0d_p      e1_9q_patch  etc          man          r1_9m_patch
+awk          c2_0e        e1_9s_p      etc_tft      optical      r1_9p_p
+bin          c2_0f        e1_9t        h1_9s        p1_9p_patch  r1_9q
+bin.tft      c2_0x        e2_0a        h2_0e        p1_9s_p      s2_0t
+c1_9q_p      contrib      e2_0a_p      h2_0f        p1_9t        s2_0x
+c1_9s        data         e2_0b_p      h2_0f_tcc    p2_0a        stubs
+
+1   r1_9p       1600 CVD    -------- Use SUN OS ----
+	e1_9        1600 Etch
+	c1_9        3500 CVD
+
+2   c2_??       3500 CVD
+	c2_0d       3500 Etch
+	e2_     3500 Etch
+	p2_     3500 PVD
+	p1_9        1600 PVD    ----------- SUN OS -----
+
+3   c3_0a       1600/3500/4300  ----------- Solaries -----
+	c3_0d       1600/3500/4300
+
+4   4_0a                ----------- Solaries -----
+
+- how to find the changing history of a file
+>cd /vol/rlst/data/PLT_CONTROL/
+>grep cvdvac_pin.icf activ*
+>cd /aktvol/mcc/akt4300/plt_exports/config/build/lego/RCS
+>rcsdiff -r1.12 -r1.11 cvdvac_pin.icf,v | more  OR >rlog cvdvac_pin.icf,v | more
+to link RCS 
+ln -s /aktvol/rls/15_8b/config/ch/chmbCVD/src/RCS .
+to remove rm -rf RCS
+
+And to find what activities has been done goto
+>cd /vol/platformt
+>ls :to see activities
+
+- how to check whether compile build is good not not
+goto /aktvol/rls/10_0a/config
+grep FAIL 10_0a.out.tft
+these are normal
+*** svid_data(sparc) install_products - FAILED ***
+*** pressMT(vw68020) install_objects - FAILED ***
+*** rfcalib(sparc) install_objects - FAILED ***
+*** gascalib(sparc) install_objects - FAILED ***
+
+grep FAIL 10_0a_plt.out
+grep FAIL 10_0a_products.out.tft
+these 3 are normal
+*** builder(sparc) install_products - FAILED ***
+*** umn(vw68020) install_products - FAILED ***
+*** svid_data(sparc) install_products - FAILED ***
+
+- how to see the list of mdoule that checked in
+>cma    /* module files */
+>ca /* for template file */
+
+- how to make a new tape (case 4_0c )
+>cd vol/tftv2/TARGET
+>cd 4_0c
+>mt -rf /dev/rmt/0 rewind   /* 0:rewind */
+OR >mt -f /dev/rmt/0 rewind
+>amat/current_rls/bin/mcctape
+hit Enter key
+all done.
+>mt -f /dev/rmt/0 rew
+
+- how to install new tape to machine
+login service
+>tar vxf /dev/rst4/
+>./mcc install -c
+hit Enter key (from 1 - 7 )
+But choose No for question 8: install new software key?
+  9:config Icon?(BCM:mach)
+  that's all.
+
+- how to dump Event Log from MMI
+goto Window -> click event log under Service -> File, save as
+Then it saves under tmp/ filename.events
+OR use elogdump under maido (utility)
+
+- how to stop cycling test ( i.e. Cycling test RL)
+write down the number of cycling for reference by pressing 5th rectangular icon
+Press STOP button
+
+sequence : 30_nm_test by press 4th icon.
+- how to put it back
+/*
+Turn on driver RL
+Press Abort
+Press ON line
+press 4th icon(Auto processing) -> default -> load source -> choose Main frame
+				-> LL RL : can see the lot no ...
+ /* Frond-end: means for Atm robot, Main Frame: Vacuum robot */
+
+ Press RUN (can see automatic)
+ Press 5th icon and click cycling Mode
+ */
+
+- how to run automatic run between R/L and Xfer
+ Put online Xfer, R/L
+ Press Main menu icon -> sequence editor (check whether there is 30nm_test)
+ Click auto processing icon(4th one)
+	 a. default -> load source -> main-frame ( to make LL R/L unload status)
+	 b. press Add button -> select slot 12 -> click sequence on the right
+	 c. press Enter button
+	 d. hightlight LLRL
+	 e. press OK
+	 Press RUN button
+
+- how to make a tape (same)
+- use mcctape
+>cd desired dir (cd current_rls)
+>cd bin
+>mcctape
+use tar command
+>tar cvf /dev/rst0 current_rls
+
+- how to get the patch
+cd /vol/platformt/3_0a
+
+- how to activate master file
+1. mccconfig(bcm)
+	make changes in master file
+	do mccconfig or bcm
+	click save -> click execute
+	then we can see the changes from master's change
+
+2. OR (if we know which files are created by that master file)
+	modify creating files
+	do usr_big_lib cha(d)
+
+- how to display debug message to event log
+goto generic window
+/cluster:1/chmbXfer:1/xferportVac:x/robotBrooks:main/schan:channel
+and choose print_dbg_msg
+and add
+and set TRUE to see the debug message on the Kernel(a1_cha(d), a1_mf)
+
+- how does gcd file work
+when machine boots up, Animatics downloads gcd files
+
+- how to login alpha machine(5500)
+rlogin aktpvd02 -l service
+
+-how to browse the content of tape used mccinstall -b
+
+tft12% dd if=/dev/rst0 conv=sync | uncompress | tar tvf -
+* dd: device dump,
+mt -f /dev/rmt/0 rew : to rewind the tape
+
+- how to restore the backup tape used mccinstall -b
+tft12% dd if=/dev/rst0 conv=sync | uncompress | tar xvf -
+
+- how to make 1 slot of H/C disable so that we can use the rest of slots
+goto EC Editor
+Heat chamber and slot => disable EC: False -> True
+object : slot, chamber : chmbHeat
+
+ChmbHeat and HtrChannel => channel_used : True -> False
+object: HtrChannel, chamber : chmbHeat
+
+OR
+Define dummy for specific slot at the Manual Operation
+
+- how to find out what I have to compile for my changing module for Lib.o
+( how to make release )
+a. from Hongbin
+for example tft23:/aktvol/rls/4_0c/config
+tft23:/aktvol/rls/4_0c/config>grep slot *tft |more
+
+make.out.tft:/aktvol/wind/host/sun4-solaris2/bin/ld68k -r -o vw68020/chmbCmdLib.
+o  /aktvol/rls/4_0c/lib/vw68020/chmbLib_svc.o            /aktvol/rls/4_0c/lib/vw
+68020/serviceLib.o                       /aktvol/rls/4_0c/lib/vw68020/slotLib.o
+ /aktvol/rls/4_0c/lib/vw68020/slotDelayLib.o             /aktvol
+ /rls/4_0c/lib/vw68020/slotMgrLib.o                       /aktvol/rls/4_0c/lib/vw
+ 68020/portLib.o                  /aktvol/rls/4_0c/lib/vw68020/liftLib.o
+
+slotLib.o is used by calling chmbCmdLib.o
+Which means I have to compile slot module first and compile chmbCmd module too and bring chmbCmdLib.o
+to the testing machine. But .asc file is O.K. to bring slot.cdf.asc file only.
+i.e.) xferLib.o case, 
+/aktvol/wind/host/sun4-solaris2/bin/ld68k -r -o vw68020/xferLib.o /aktvol/rls/10_0a/lib/vw68020/chmbXferLib.o
+ /aktvol/rls/10_0a/lib/vw68020/xferspvLib.o /aktvol/rls/10_0a/lib/vw68020/xferportLib.o
+which means that xferLib.o need to be compiled with chmbXferLib.o, xferspvLib.o, xferportLib.o
+
+
+b. from Duoyan
+
+try to find out which is used for slotLib.o
+o
+tft23:/aktvol/rls/4_0c/config/ch>grep slotLib.o */Makefile | more
+ch_exe/Makefile:                        $(INSTALL_OBJ_DIR)/slotLib.o                    \
+chmb/Makefile:                  ~/$(PLATFORM)/$(PL)/bin/$(TARGET)/slotLib.o             \
+
+tft23:/aktvol/rls/4_0c/config/ch/ch_exe>vi Makefile
+
+chmbCmd_LDLIBS  =   $(INSTALL_OBJ_DIR)/chmbLib_svc.o        \
+/* chmbCmd_LDLIBS's _LDLIBS becomes Lib.o after making */
+
+			$(INSTALL_OBJ_DIR)/serviceLib.o         \
+			$(INSTALL_OBJ_DIR)/slotLib.o            \
+			$(INSTALL_OBJ_DIR)/slotDelayLib.o       \
+			$(INSTALL_OBJ_DIR)/slotMgrLib.o         \
+			$(INSTALL_OBJ_DIR)/portLib.o            \
+			$(INSTALL_OBJ_DIR)/liftLib.o
+therefore, I have to combine above Lib.o files
+so in case of modifying slot, liftElevator module
+before going to test, make liftElevator -> make slot -> make ch_exe
+and bring chmbCmdLib.o and .asc files to the testing machine
+
+example of script of doing usr_big_lib mf in case of modifying slot module
+==== from Duoyan's script ===
+touch xferLib.o chmbCmdLib.o
+rm xferLib.o chmbCmdLib.o
+
+ld68k -s -r -o xferLib.o chmbXferLib.o  xferportLib.o  xferspvLib.o
+echo "......  Done making xferlib.o  ........"
+
+ld68k -s -r -o chmbCmdLib.o chmbLib_svc.o serviceLib.o slotLib.o slotDelayLib.o slotMgrLib.o portLib.o liftLib.o
+echo "......  Done making chmbCmdlib.o  ........"
+
+/*  ld68k -s -r -o xferLib.o chmbXferLib.o  xferportLib.o  xferspvLib.o
+*     ld68k -s -r -o TARGET files needs to be included */
+
+usr_big_lib mf
+
+==================
+sparc 5 use ld68
+but Ultra 5 use ld68k to do usr_big_lib
+
+- how to execute while in Sun
+>while 1
+> ls -lt robot* /* can command I want to execute */
+>sleep 1
+>end
+- meaning of RPSC
+Remote Plasma Source Clean
+
+- how to test intlk on online between RL and Xfer
+put online first at Atmospheric
+click 3rd icon(cluster)
+goto Manual operation
+select S/T, and define class to R/L
+click Move
+
+- how to get maido source
+tft23:/aktvol/rls/4_0c/config/akt_group/maido_tools/src>
+
+- how to write cp perl script for copying
+use system("command ");
+
+- how to execute my own script from any directory
+create my own bin i.e. ysbin under yhwang
+put any script to ysbin
+do source ~/.login
+execute any script
+
+- how to find script reference for copying using home directory
+goto tft23:/aktvol/rls/bin>vi copy_plt_for_create_new_whole_rcs_tree
+
+- how to do symbolic link
+tft23:/home/yhwang/targets/10_0a/obj/gui/uidlib/common>rm aktRobotC5500.uid
+tft23:/home/yhwang/targets/10_0a/obj/gui/uidlib/common>ln -s /home/yhwang/developments/10_0a/p10_robotDaihen
+_cal_screen0214/IN/aktRobotC5500/uil/aktRobotC5500.uid .
+
+/* when we change .c file do the following: */
+1. check out mmi_exe
+
+	goto vi mmi_makefile
+	search for aktRobotC5500Lib.o
+	$(PRIVATE_INTEG_DIR)/lib/sparc/aktRobotC5500Lib.o     \
+	change to the
+	../aktRobotC5500/sparc/aktRobotC5500Lib.o   \
+2. goto target/10_0a
+	tft23:/home/yhwang/targets/10_0a/obj/sparc>ls -al MMI*
+	tft23:/home/yhwang/targets/10_0a/obj/sparc>mv  MMI MMI.orig
+	tft23:/home/yhwang/targets/10_0a/obj/sparc>ln -s /home/yhwang/developments/10_0a/p10_robotDaihen_cal_scr een0214/IN/mmi_exe/sparc/MMI .
+	tft23:/home/yhwang/targets/10_0a/obj/sparc>ls -la MMI*
+		   lrwxrwxrwx   1 yhwang   tft           83 Feb 20 10:39 MMI -> /home/yhwang/developments/10_0a/p10_ robotDaihen_cal_screen0214/IN/mmi_exe/sparc/MMI
+		   lrwxrwxrwx   1 yhwang   tft           31 Feb 15 16:19 MMI.orig -> /aktvol/rls/10_0a/bin/sparc/MMI
+
+3. that's it: from now any changes from source code will affect to MMI
+4. everytime I change c file do make mmi_exe
+
+/* end of mmi_exe effect and link to target */
+
+- how to combine 3 xfer* to make xferLib.o
+goto ch_exe module's Makefile
+and added the followings:
+xferLib.o created by adding the followings to Makefile of ch_exe
+#xfer_MOD_LOC   =       chmbXfer xferspv xferport
+xfer_LDLIBS     =       ../chmbXfer/vw68020/chmbXferLib.o               \
+						../xferspv/vw68020/xferspvLib.o \
+						../xferport/vw68020/xferportLib.o
+
+# yhwang added INC PATH
+LDLIBS = -L../xferport/vw68020 \
+		 -L../xferspv/vw68020
+	  ch_exe's Makefile
+	   xfer_MOD_LOC    =       chmbXfer xferspv xferport
+		and type "make xfer" to create xferLib.o
+	 Creates xferLib.o
+
+  when we do make
+	   private goes to *.lh
+	   publie goes to *.ext
+
+- how to compile src/*.x file
+in case .x file use "make svc" and "make clnt"
+make
+make svc    server / service
+make clnt   for client
+
+i.e. wh
+obj/sparc
+wh whLib_svc.o whLib_clnt.o wh_client
+this case
+make svc, make clnt, make wh, make wh_client to create wh and wh_client
+
+i.e. change chmb module
+1. browse out ch_exe
+2. modify Makefile of ch_exe to make link chmb
+3. make svc and make clnt
+4. make install_products in ch_exe and hit enter key
+5. ftp chmbCmdLib.o to machine
+6. usr_big_lib
+
+<hostname : /home/yhwang 30>grep chmbCmdLib make.out.tft
+/aktvol/wind/host/sun4-solaris2/bin/ld68k -r -o vw68020/chmbCmdLib.o  /aktvol/rls/10_0a/lib/vw68020/chmbLib_
+svc.o                /aktvol/rls/10_0a/lib/vw68020/serviceLib.o                      /aktvol/rls/10_0a/lib/v
+w68020/slotLib.o        /aktvol/rls/10_0a/lib/vw68020/slotDelayLib.o             /aktvol/rls/10_0a/lib/vw680
+20/slotMgrLib.o                      /aktvol/rls/10_0a/lib/vw68020/portLib.o /aktvol/rls/10_0a/lib/vw68020/l
+iftLib.o
+   mv vw68020/procRcpLib.o vw68020/xferLib.o vw68020/feLib.o vw68020/chmbCmdLib.o vw68020/robotsLib.o vw6802
+   0/cmmndIntlkFltEvntLib.o vw68020/gasLib.o  /aktvol/rls/10_0a/lib/vw68020
+
+   0. browse chmb module and make svc make clnt and cpoy chmbLib_svc.o to obj/vx/
+
+   1. browse out ch_exe
+   2. modify Make of ch_exe to make link chmb
+   3. make svc and make clnt
+   4. make install_products in ch_exe
+   5. ftp
+   6. ld 68k -r -o chmbCmdLib.o chmbLib_svc.o serviceLib.o slotLib.o slotDelayLib.o sl otMgrLib.o portLib.o lif
+   tLib.o
+   7. usr_big_lib
+
+   after copy chmbLib_svc.o to obj/vx/
+
+ to vx directory
+ ld 68k -r -o chmbCmdLib.o chmbLib_svc.o serviceLib.o slotLib.o slotDelayLib.o slotMgrLib.o portLib.o liftLib.o
+
+ - how to find out which modules involve to generate one *Lib.o file
+ goto aktvol/rlst/4_0c/
+ vi 4_0c_products.out.tft
+ search xferLib.o
+
+ to include xferport.c, chmbXfer.c, xferspv.c
+ modify Makefile
+ #xfer_MOD_LOC   =       chmbXfer xferspv xferport
+ xfer_LDLIBS     =       ../chmbXfer/vw68020/chmbXferLib.o               \
+			 ../xferspv/vw68020/xferspvLib.o \
+						 ../xferport/vw68020/xferportLib.o
+*/
+- how to print MMI window picture
+type xwd > filename     and return
+or use xv		: grab function
+and use "graph" to print out
+
+to capture pull down menu
+use snapshot
+1. >snapshot
+2. goto MMI click menu
+3. stay the icon to the window
+
+and click MMI window
+and then type graph filename to print
+
+- how to debug in MMI
+goto targets/10_0a/tmp
+type:gdb ../obj/sparc/MMI core      core: file dumped
+type where
+
+- how to unlock the module
+first contact locker
+second choose unlock from ara menu
+third remove that module
+fourth ara check out.
+
+- how to solve FAIL check in
+a. check Makefile whether every file is in tst/src/doc
+b. modify Makefile according to tst/srt/doc
+c. If Makefile doesn't match to tst/src/doc directories' files, we can check out/compiling
+but not check in.
+
+- how to get the data from sun like sampling data
+goto monitoring on the menu
+and define time, sampling time
+file name,
+
+then we can see that file in tmp directory
+
+- how to distinguish between didoAmt1 and apcVmedido, clock rate
+from James
+didoAmt1 -> VME di/do PCB : every dido requires 2 wires to device
+
+apcVmedido -> Apc seriplex board -> network cable -> module : 2 physical wires to device
+				clock generated         PWR           20 di/do
+										GND
+										BUS
+										CLOCK
+										GND
+	JJ decide cable length/type => clock bus rate
+
+		currently 1600/3500 use 64khz
+				  5500/10K  use 100khz
+by using apcVmedido, we can save lots of wires
+i.e. we connect only module to device instead of VME dido in PCB to device (some remote frame
+is 1st floor and we have to connect to 2nd floor. too much
+
+- 5/17/01 important stuff for bcm screen
+to make bcm screen effect
+	a. goto target, mv config/buile/cfga old_cfga, mv lego old_lego
+	b. cp -r old_cfga cfga (lego), then not symbolic link but actual copy
+	c. modify super_set_MF.mk
+	##################################################################
+	# chmbCln
+	#
+	##################################################################
+
+	added   chmbCln_DATA:= Number_of_slots:INT=4
+
+	d. build_config -gvf under target/config/build/cfga after link modified ***.mk file
+		to the target
+
+	e. bcm      /* then number of slot of Cln, Crn available */
+to check out
+	1. module
+		superset_common (MF) -> modify super_set_MF.mk
+		added chmbCln_DATA:= Number_of_slots:INT=4
+		superset_CVD(PC)
+	2. platform files (lego)
+		chmbCln.icf
+		added CHMB_CLN/slotMgr:x/slotMgrRot:$1
+		added CHMB_CLN;number_of_slots        Number_of_slots
+
+		chmbCrn.icf
+		CHMB_CLN/slotMgr:x/slotMgrRot:$1
+		CHMB_CLN;number_of_slots        Number_of_slots
+- how to change/make Cln chamber Online which I couln't do
+goto current_rls/config
+vi comm.config.generic
+search Cln and swap chmbClnVirt into chmbCln
+and then reboot
+
+- how to make LL_only sequence
+
+ goto sequence editor
+  save as LL_only with no steps
+
+   goto EC editor
+	wafer_mgr : seg_check set to FALSE
+ and Make sure  put it back to TRUE
+
+- how to run / move real substrate without substrate sunsor off
+ run FE ATM side with substrate and with virtual in MF side
+ change 2 ECs
+ chmbXfer:$1:xferportVac:x:virtual_wafer     FALSE (from TRUE)
+ robotAKT's calibration_toggle               TRUE ( from FALSE)
+
+- how to make target in tft28
+
+source /home/yhwang/.login
+
+mk_target
+- how to make a target's name i.e. 10_0a to ys10_0a
+goto changed directory /bin/
+and modify machine.init to the current directory.
+Thank you Inchen
+
+- how to make target
+/*
+1. xterm &
+2. source .login /* at the xterm window
+3. make a directory temp target
+4. mk_target -r 5_5d -s /* symbolic exe */
+5. enter y
+6. cd 5_5d
+7. ls
+8. source bin/machine.init
+9. cd config/build/machine_tmplt/
+10. bcm
+11. choose /click No
+12. choose 2 DSL H/T R. Dual slot loadlock (DSL)
+13. Add R/L, L/L
+14. goto file and save as "mach"
+15. after saving, go to Execute bar menu and click "build-config"
+16. click "dismiss" after seeing "Build-Config finishing successfully"
+17. goto file menu and then click "exit"
+18. go back to "target/5_5d" dir
+19. run.mcc -l -ch /* wait for booting /to see options type run.mcc -h */
+/* hb_server has infinite loop because of /config/calibration.icf file that
+ has previous configuration data i.e. doesn't match. so how to come over
+ delete for not selecting chambers' lines
+ About /tmp_last/CFG_LOG.1~no tells what is wrong for run.mcc */
+
+20. open another xterm
+21. type source bin/machine.init
+22. go to target/5_5d/ rcp_check -lp; rcp_check -lr
+/* if we have unnecessary recipe check, delete prog/rcp/rm cvda* cvdb* cvdc* cvdd*
+*/
+23. target/5_5d/prog/tmplt/
+
+24. edit ll_unload.prog, rl_unload.prog, ll_load.prog, rl_load.prog.
+25. add EVENT "1" to each SET line for each file
+/* Don't put EVENT "" between EXCEPTION_END and ABORT_EXCEPTION
+* useful command to compare two files: diff file1 file 2
+26. rcp_check -r filename ONLY /* should be no errors */
+
+- how to get latest release
+goto /vol/tftv2/TARGET
+
+for ftp to get from Korea
+goto /vol/tftv2/TARGET
+and tar -cvhf filename /vol/tftv2/TARGET
+and then ftp
+and tar xvf filename
+
+- how to compile acls_gate and do usr_big_lib
+1. get acls_gate module
+2. make
+3. copy acls_gateLib.o to obj/vx/
+4. normal reboot
+NO usr_big_lib 
+modify under gate_makefile under cc_exe
+and do make gate
+
+
+
+- how to come over VME error warning while running
+change hbserver column in com_config_generic
+i.e. tft23:/aktvol/rls/10_0a/plt_exports/config/build/lego>vi cha(f).comm.master
+CPU  evnt_clnt_comm_grp CLNT_VX  1  0x41000000   30000    90000  30000 110  0 { }
+
+
+HOST.comm.master  chb.comm.master   chd.comm.master   chf.comm.master
+cha.comm.master   chc.comm.master   che.comm.master   mf.comm.master
+
+thanks James
+
+- how to send event sw wise
+use chmb_shell 
+invocation: chmb_shell -grp cc_shell
+open xterm
+type chmb_shell -grp cc_shell under 10_0a/config/
+
+- how to apply chcc.config file to the simulator
+1. modify chcc.config /data/cfg/
+2. type chmb_shell -grp cc_shell < chcc.config
+3. STOP and RUN, then new changes are effective to the simulator
+
+chmb_cmd>
+chmb_cmd>?		/* to see usage */
+to send one event
+chmb_cmd>send inst_id event_id [args]
+inst_id: 		get from mcc.icf
+event_id[args]:	get from cdf
+
+
+- how to use lab simulation
+1. change simulation_mode in robotAKT
+2. change simulation_mode in robotDaihen
+3. change liftElevator's simulation_mode
+4. NA motorMei
+5. slit's simulation_mode: copied slitLib.o from 10_0a_sim/obj/vx
+6. pdoor's simulation_mode
+7. delete all intlk: touch remove all contents
+
+8.
+
+- how to see the history of check in
+goto /aktvol/rls/10_0a/config/cc/userSysStat/src
+type rlog userSysStat.c
+
+-how to dump all events
+a. elog_client -grp elog_client -cmd view from = mm/dd/yy;hh:mm to = mm/dd/yy;hh:mm > ~/current_rls/tmp/event_file
+elog_client -grp elog_client -cmd view > file_name
+
+if a is failed use b method
+b. elog_client -grp elog_client 
+elog> view from = 10/09/02;10:10 to = 10/09/02;10:10
+
+- how to check out each tag from release
+use co command
+
+- how to build superset_common 
+first link modified file to config/build/cfga/
+after modified superset_common, do bulid_config -gvf
+
+- how to build config without using build_config in bcm
+>build_config -v mach.tmpl
+
+config/mcc_dependency
+search a1_mf /bin/*
+cfga/super_set_CTRL
+bin/setenv.run.mcc to find out a1_mf or a1_cha 
+
+- how to know what seq_check do
+a. MF sequence check
+b. right chamber
+c. that chamber's on line
+
+information about message and msgQ
+refer to p41 file
+or brifely here
+
+MCC     |  message      :--> has own loop like while(TRUE) and
+							point to or execute message function
+Vx      | msgQ          :--> after msgQReceive -> dispatch_command
+
+- how to run/move robot from service
+for example : moving robot from service in om1_0a
+a. modify/add robot_cyc   R   te_robot_cyc to  ll.svc
+		door_cycle R ll_door_cycle
+		robot_cyc   R   te_robot_cyc
+b. goto prog/tmplt and vi te_robot_cyc
+refer to te_robot_cyc.prog under info_yhwang/execut_from_svc_menu.032602
+
+- how to build whole release
+About 4_0 and 5_5
+1. rlogin tftsrv -l tconfig
+2. build
+
+About 15_0a
+1. rlogin tft32 -l tconfig
+2. build
+after build done, (build finished on time)
+3. rlogin tftsrv -l tconfig
+4. auth 15_0a
+
+then we can make target / tape
+
+* end of RUN.MCC *
+
+About alpha10K MECS robot
+- how to change robot slot number and pitch
+1. go to PAR, usp 21 using page down key mode or F1 key
+2. change 41's value from 2 to 20 by pressing shift and SET 41 20 --> enter
+3. pressing shift --> enter SET 42 35000 --> enter
+< 41: 2			20	
+< 42: 700000	35000
+
+
+*** TEMPLATE ***
+- how to delete recipe
+/* if we have unnecessary recipe check, delete prog/rcp/ rm cvda* cvdb*
+* cvdc*, cvdd* */
+
+- how to edit/check recipe, put event 
+goto target/5_5d/prog/tmplt/
+
+edit ll_unload.prog, rl_unload.prog, ll_load.prog, rl_load.prog.
+add EVENT "1" to each SET line for each file
+/* Don't put EVENT "" between EXCEPTION_END and ABORT_EXCEPTION
+* useful command to compare two files: diff file1 file 2
+
+rcp_check -r filename ONLY /* should be no errors */
+
+- how to make delay after process before going spacing
+in cvdb_pcvd.prog
+STEP_SETTABLE_PARAMETERS    /* which questions-per-step */
+	DEFINE          : process_pos_delay process:x;time_1
+	DESCRIPTION     : "Delay after reaching process position before reaching spa cing"
+	MIN             : 0
+	MAX             : 20000
+	DEFAULT         : 0
+make sure time_x is not used anywhere except here
+
+STEP_SECTION_BEGIN
+SET     process_pos_delay
+
+/* yhwang added for delay after getting process_offset */
+IF (step_num == 1)
+		EVENT "before delay in first step"
+		DELAY   process_pos_delay
+		EVENT "after in first step"
+ENDIF
+SET     Process_spacing
+
+- how to make loop for rpsc cleaning for certain steps' repeat period
+in cvdb_rpsc_cyc.prog which is copied from cvdb_rpsc_epd.prog
+
+GENERAL_SETTABLE_PARAMETERS
+	DEFINE          : last_step                 process:x;int32_17
+	DESCRIPTION     : "last step to repeat on"
+	MIN             : 0
+	MAX             : 100
+	DEFAULT         : 18
+	DEFINE          : repeat_over               process:x;int32_18
+	DESCRIPTION     : "last step to repeat on"
+	MIN             : 0
+	MAX             : 2000
+	DEFAULT         : 18
+
+PROGRAM_DEFINITION
+/*** Header Section for general parameters ***/
+SET     total_step,0
+SET     repeat_over
+SET     last_step
+
+SET  step_end_done, ENUM (TRUE)
+==>
+      IF ( (current_step == last_step) AND (total_step < repeat_over))
+			  SET     total_step,total_step + 1
+			  EVENT   " REPEATING OVER ",total_step
+			  SET     current_step, 1
+	  ENDIF
+DETECT ENDPOINT
+STEP_SECTION_END
+
+INTERNAL_PARAMETERS
+        DEFINE: total_step process:x;int32_16
+		DEFINE: current_step process:x;step
+
+help for template, recipe, sequence
+080601
+recipe:		the work chamber is doing ll_pump.proc
+		created by user
+		recipe uses tmplt
+
+sequence:	chHeat -> chmb A
+			------		-----
+			(rcp)		(rcp)
+
+tmplt:		ll_pump.prog
+		created by AKT
+
+* 	prog(tmplt)'s parameter is refered from *.proc(rcp) which is updated by user
+
+Heat:heat_slotr.proc, prog
+Process:	gas, pressure, power
+			15inchR.proc
+			17inchR.proc
+
+examples of template, recipe, sequence
+
+***************
+**	sequence **
+***************
+SEQUENCE ==> recipe ==> based on template
+
+VERSION          : Undefined
+ACCESS           : Undefined
+TIME_OF_CREATION : "Undefined"
+CREATOR          : "amat"
+DESCRIPTION      : ""
+
+
+    STEP_NAME :
+
+        LOGIC : SIMPLE
+        MODULE_OPERATOR :
+             /cluster:$1/chmbHeat:$1
+             PROC : heat_slotr
+             DUMMY_TYPE :
+    STEP_END
+/* here's heat_slotr.proc */
+PROCESS_RECIPE
+
+BASED_ON_TEMPLATE : heat_slotr
+VERSION           : Undefined
+ACCESS            : Undefined
+TIME_OF_CREATION  : "Undefined"
+CREATOR           : "amat"
+PASSWORD          : Undefined
+DESCRIPTION       : ""
+CHAMBER_CLASS     : chmbHeat
+WAFER_REQUIRED    : 1
+PROCESS_SUB_TYPE  : Undefined
+
+GENERAL_PARAMETERS_SETTINGS :
+
+        max_recipe_time = 36000000
+        wafer_history = FALSE
+
+    STEP_NAME : None
+        vac_slot_delay = 120000
+        atm_slot_delay = 120000
+        max_step_time = 36000000
+
+        END_POINT  : no_wait
+    STEP_END
+END_PROCESS_RECIPE
+
+/*************end of heat_slotr.proc *********/
+/* heat_slotr template */
+
+    STEP_NAME :
+
+        LOGIC : ANY
+        MODULE_OPERATOR :
+             chmbCVD
+             PROC : cvd_200
+             DUMMY_TYPE :
+    STEP_END
+
+    STEP_NAME :
+
+        LOGIC : RETURN ANYLL
+    STEP_END
+END_SEQUENCE
+
+/* here's cvd_200.proc */
+PROCESS_RECIPE
+
+   BASED_ON_TEMPLATE : cvd
+   VERSION           : Undefined
+   ACCESS            : Undefined
+   TIME_OF_CREATION  : Undefined
+   CREATOR           : Undefined
+   PASSWORD          : Undefined
+   DESCRIPTION       : "This is a very simple-delay recipe. "
+   CHAMBER_CLASS     : chmbCVD
+
+GENERAL_PARAMETERS_SETTINGS :
+
+        max_recipe_time = 1000000
+
+    STEP_NAME : DELAY
+        max_step_time = 1000000
+        step_time = 60000
+
+        END_POINT  : abs_time_end
+    STEP_END
+END_PROCESS_RECIPE
+
+/*************end of heat_slotr.proc *********/
+
+ll_pump.proc
+
+PROCESS_RECIPE
+   BASED_ON_TEMPLATE : ll_pump
+   VERSION           : Undefined
+   ACCESS            : Undefined
+   TIME_OF_CREATION  : Undefined
+   CREATOR           : Undefined
+   PASSWORD          : Undefined
+   DESCRIPTION       : ""
+   CHAMBER_CLASS     : chmbLLVac
+ GENERAL_PARAMETERS_SETTINGS :
+		max_recipe_time = 900000
+	STEP_NAME : None
+		max_step_time = 800000
+		vacuum_set_point = 500.00
+		END_POINT  : no_wait
+	STEP_END
+END_PROCESS_RECIPE
+
+
+
+template: pump
+---------------
+TEMPLATE_NAME        :  pump
+DESCRIPTION          : "This program is used for pumping ll chamber"
+PROCESS_TYPE         : SERVICE
+CHAMBER_CLASS        : chmbLLVac
+   GENERAL_SETTABLE_PARAMETERS
+	 DEFINE: max_recipe_time process:x;max_recipe_time
+   DESCRIPTION : "maximum milliseconds for recipe before timeout error"
+	 MIN         : 1000
+   MAX         : 1000000
+	 DEFAULT     : 900000
+/****************************************************************************/
+PROGRAM_DEFINITION
+/*** SET OF GENERAL PARAMETERS ***/
+   SET            max_recipe_time
+   STEP_SECTION_BEGIN
+   SET            max_step_time
+   /* Check if door is closed */
+   IF ( door_pos !=  ENUM ( close ) )
+    EVENT   "Cannot pump when door is open"
+    DETECT FAULT
+   ENDIF
+   /* Pump */
+   SET slow_vent, ENUM ( closed )
+   SET fast_vent, ENUM ( closed )
+      /** turn pump on **/
+      IF ( pump_status == ENUM ( OFF ) )
+         SET pump_activity   , ENUM ( TURN_ON )
+      ENDIF
+      /** wait for pump to be turned on. if it was turned on
+          by heat chmb, we wait till its running **/
+      WAIT ( pump_status == ENUM ( RUNNING ) )
+   /* dshen -- added next two lines to reset vacuum state.
+    In case someone manually changed vac valves.  */
+   SET     vacuum_activity , ENUM ( ISOLATE )
+   WAIT    ( vacuum_gen_state == ENUM(ready))
+   /* dshen -- check all vac valves again. ISOLATE command does not close
+                  manually opened vac valves. 5/98                        */
+      IF (slow_vac_valve != ENUM( closed ))
+         SET slow_vac_valve, ENUM( closed )
+      ENDIF
+      IF (fast_vac_valve != ENUM( closed ))
+         SET fast_vac_valve, ENUM( closed )
+      ENDIF
+   SET          vacuum_set_point
+   SET      vacuum_activity , ENUM ( PUMP )
+   WAIT     ( vacuum_stability ==  ENUM (  stable ) )
+   DELAY    2000
+   DETECT ENDPOINT
+   STEP_SECTION_END
+   FAULT_EXCEPTION
+      EVENT      "fault was detected in pump service"
+      SET        vacuum_activity    , ENUM ( ISOLATE )
+    EXCEPTION_END
+   ABORT_EXCEPTION
+      EVENT      "Pump service aborted"
+      SET        vacuum_activity    , ENUM ( ISOLATE )
+    EXCEPTION_END
+   TIMEOUT_EXCEPTION
+      EVENT      "Pump service timed out"
+      SET        vacuum_activity    , ENUM ( ISOLATE )
+    EXCEPTION_END
+PROGRAM_END
+
+for example
+ll_pump
+1. door close
+2. pump check/on
+3. Vac valve
+4. user defined valve close
+   ------------
+
+***** LL_only.seq
+/*
+ **************************************************************************
+ *                       C  A  U  T  I  O  N                              *
+ *                                                                        *
+ *                  *** DO NOT EDIT THIS FILE ***                         *
+ **************************************************************************
+ *
+ * FILE: "tt.seq"
+ *
+ * DESCRIPTION: This file includes definition of sequence recipe "tt.seq".
+ *
+ * GENERATED BY rcpseqSave tool
+ *
+ * Copyright Applied Materials Corp., 1991.
+ * All rights reserved.
+ *
+ ***************************************************************************
+*/
+SEQUENCE
+
+VERSION          : Undefined
+ACCESS           : Undefined
+TIME_OF_CREATION : "Undefined"
+CREATOR          : "amat"
+DESCRIPTION      : ""
+
+    STEP_NAME :
+
+        LOGIC : SIMPLE
+        MODULE_OPERATOR :
+             /cluster:$1/chmbHeat:$1
+             PROC : heat_slotr
+             DUMMY_TYPE :
+    STEP_END
+
+    STEP_NAME :
+
+        LOGIC : ANY
+        MODULE_OPERATOR :
+             chmbCVD
+             PROC : cvd_200
+             DUMMY_TYPE :
+    STEP_END
+
+    STEP_NAME :
+
+        LOGIC : RETURN ANYLL
+    STEP_END
+END_SEQUENCE
+
+/* heat_slotr.proc */
+/*
+ **************************************************************************
+ *                       C  A  U  T  I  O  N                              *
+ *                                                                        *
+ *                  *** DO NOT EDIT THIS FILE ***                         *
+ **************************************************************************
+ *
+ * FILE: "heat_slotr.proc"
+ *
+ * DESCRIPTION: This file includes definition of process recipe "heat_slotr.proc".
+ *
+ * GENERATED BY rcpprocSave tool
+ *
+ * Copyright Applied Materials Corp., 1991.
+ * All rights reserved.
+ *
+ ***************************************************************************
+*/
+
+PROCESS_RECIPE
+
+BASED_ON_TEMPLATE : heat_slotr
+VERSION           : Undefined
+ACCESS            : Undefined
+TIME_OF_CREATION  : "Undefined"
+CREATOR           : "amat"
+PASSWORD          : Undefined
+DESCRIPTION       : ""
+CHAMBER_CLASS     : chmbHeat
+WAFER_REQUIRED    : 1
+PROCESS_SUB_TYPE  : Undefined
+
+GENERAL_PARAMETERS_SETTINGS :
+
+        max_recipe_time = 36000000
+        wafer_history = FALSE
+
+    STEP_NAME : None
+        vac_slot_delay = 120000
+        atm_slot_delay = 120000
+        max_step_time = 36000000
+
+        END_POINT  : no_wait
+    STEP_END
+END_PROCESS_RECIPE
+
+/* heat_slotr.prog */
+CREATOR              :  ""
+MODIFYTIME           :  ""
+ACCESS               :  ""
+VERSION              :  ""
+TEMPLATE_NAME        :  heat_slotr
+DESCRIPTION          : "This program is used for slot delay of chamber"
+/* process type should be service !! */
+PROCESS_TYPE         : PROCESSING
+CHAMBER_CLASS        : chmbHeat
+PARAMETER_DEFINITIONS
+/*
+   This section contains definitions of attributes that are set
+   once in a process, before or after the step section. One value
+   is recieved from the recipe for the setting of the attribute.
+   Attributes may be grouped for MMI display purposes.
+*/
+   GENERAL_SETTABLE_PARAMETERS
+          DEFINE: max_recipe_time process:x;max_recipe_time
+          DESCRIPTION : ""
+          MIN         : 0
+      MAX         : 36000000
+          DEFAULT     : 3600000
+      DEFINE          : wafer_history process:x;bool_9
+      DESCRIPTION     : "control data collection"
+      MIN             : NA
+      MAX             : NA
+          DEFAULT         : FALSE
+/*
+   This section contains definitions of attributes that are set
+   in each step. values are recieved from the recipe for the setting
+   of the attribute, one value for each step
+   Attributes may be grouped for MMI display purposes.
+*/
+   STEP_SETTABLE_PARAMETERS
+          DEFINE: max_step_time process:x;max_step_time
+          DESCRIPTION : ""
+          MIN         : 0
+      MAX         : 36000000
+          DEFAULT     : 3600000
+          DEFINE: atm_slot_delay process:x;time_1
+          DESCRIPTION : " "
+          MIN         : 1000
+      MAX         : 30000000
+          DEFAULT     : 3000
+          DEFINE: vac_slot_delay process:x;time_2
+          DESCRIPTION : " "
+          MIN         : 1000
+      MAX         : 30000000
+          DEFAULT     : 420000
+/*
+   This section describes the attributes to be used for internal
+   use of the program. These attributes do not recieve values from
+   the recipe. They are either set with values specified in the program
+   or, are used in conditions
+*/
+    INTERNAL_PARAMETERS
+         DEFINE: pressure_mode  ;pressure_mode
+         DEFINE: current_temp   tempdevMultiht:htr_multi;temp
+         DEFINE: slot_name  process:x;instname1
+         DEFINE: attr_name  process:x;attrname1
+         DEFINE: slot_delay process:x;value1
+         DEFINE: current_slot   slotMgr:x;current_slot_path
+/*
+   This section describes the attributes to be monitored by the process
+   control. Alarm and warning tolerances are defined as well as the name of
+   the attribute that the tolerances should be compared to.
+*/
+   PROCESS_MONITORED_PARAMETERS
+/*
+   This section describes the attributes to be monitored by the MMI.
+   Attributes may be grouped for MMI display purposes.
+*/
+   DISPLAYED_PARAMETERS
+/*
+   This section describes the predefined endpoints.
+   Endpoint may be have parameters Values for the parameters are recieved
+   from the recipe. The recipe defines an end point for each step.
+*/
+  PREDEFINED_ENDPOINT_DEFINITIONS
+   ENDPOINT_NAME :  no_wait
+     DESCRIPTION   :  "no wait"
+          ENDPOINT_BODY
+              ( max_recipe_time == max_recipe_time )
+          ENDPOINT_END
+/****************************************************************************/
+PROGRAM_DEFINITION
+/*** SET OF GENERAL PARAMETERS ***/
+   SET      max_recipe_time
+   STEP_SECTION_BEGIN
+   SET      max_step_time
+   SET      wafer_history
+   SET      slot_name, current_slot
+   SET      attr_name, "slot_delay"
+   IF ( wafer_history == ENUM(TRUE) )
+      START_DATA_COLLECTION
+   ENDIF
+   IF ( ( pressure_mode == ENUM (atmospheric) ) or ( current_temp < 100 ) )
+      SET   atm_slot_delay
+      SET   slot_delay, atm_slot_delay
+   ELSE
+      SET   vac_slot_delay
+      SET   slot_delay, vac_slot_delay
+   ENDIF
+   IF ( wafer_history == ENUM(TRUE) )
+      STOP_DATA_COLLECTION
+   ENDIF
+   DETECT             ENDPOINT
+   STEP_SECTION_END
+/*
+  FAULT_EXCEPTION
+   EXCEPTION_END
+   ABORT_EXCEPTION
+   EXCEPTION_END
+   TIMEOUT_EXCEPTION
+   EXCEPTION_END
+*/
+PROGRAM_END
+
+* end of TEMPLATE *
+
+*** VXWORKS ***
+- how to execute function from a1_mf screen
+/* type function like
+>apcVmeDefineChannel(0100,1,0)
+*/
+
+- how to find apcVmeDefineChannel function
+/* 1. goto /aktvol/rls/4_0x/config/ch      /* config contains all source files
+							cc:     major group
+							fa:     factory automation
+							gen:    generic
+							mmi:    interface
+							tools:
+							ch:     chambers real-time
+2. >fgrep apcVmeDefineChannel */src/*.c /* to find where it is
+	Usually
+*/
+
+- how to reset a1_mf CPU
+/* >xterm &
+>rlogin tft28 -l service
+>rlogin a1_mf in adt term
+>ctrl + x for resetting
+*/
+
+- how to suspend a1_mf
+/* In a1_mf
+>ctrl + z for suspending
+>fg for getting back to foreground
+*/
+
+- how to reset the main VME when adt not responding
+/* goto the lab and press "reset" button */
+
+- how to suspend the task
+ refer to Vxwork manuel
+ something task_id
+taskSuspend(task_id)
+
+- how to make CPU freeze
+	rf_leak max
+
+- how suspend, taskRestart work
+type windman
+>windman &
+- how to set setwind file
+try to modify based on adt machine's setwind file
+ and exit and try again.
+ >source .login (5_5d)
+ >source setwind
+ >windman &
+
+- how/where to put vx Kernel files
+adt>/usr1/vxs/kernel-5.3.1/gmsv36/
+
+- how to execute function in vx cpu prompt
+While on line, this is the way of executing function.
+available for ONLY PUBLIC function
+
+in vx_work cpu prompt
+to check heat chamber for example
+
+1. define id and handid
+		a1_mf>id = 99999    
+				/* just define any paramater to integer, any name */
+		a1_mf>handld = 99999
+				/* a1_mf>???Abort(handle) or ???Init(handle) */
+
+2. get instID from instString that can be found in mcc.icf
+        a1_mf>instStringToID("/cluster:1/chmbHeat:1/portHeat:x/liftElevator:lift/motorDcServo", & id)
+				/* Saves inst String to id,
+					instStringToID : converts an instance's string name into an ID */
+3. get handler from id using instCfgIDToHandle()
+		a1_mf>instCfgIDToHandle(id, & handle)
+				/* instCfgIDToHandle: returns the handle of an instance */
+
+4. use/call any function by referencing function parameters
+		a1_mf>motorAbort(handle)
+
+- how to get ip address in a1_mf
+ping -s adt
+adt:vx 130 > ping -s adt
+PING adt: 56 data bytes
+64 bytes from adt (192.9.201.11): icmp_seq=0. time=0. ms
+64 bytes from adt (192.9.201.11): icmp_seq=1. time=0. ms
+64 bytes from adt (192.9.201.11): icmp_seq=2. time=0. ms
+
+how to use a function with reboot
+how to get handler so that I can use a function in chmbCln
+
+/clusterFE:$2/chmbCln:$Cln
+
+Error: Could not set parameter command of element : wh; Reason:config_err
+about process data collection in fa/process data collection in MMI
+with wh.config
+
+how to execute one function in chmbCln chmbClnGateTester()
+
+here's how to do it
+
+0. goto a1_mf window
+
+1. ->path = "/clusterFE:$2/chmbCln:$Cln"
+2. ->id = 1
+3. ->instStringToID(path,&id)
+4. ->printf id  /* to see id */
+Access Fault
+^MProgram Counter: 0x00025f32
+^MStatus Register: 0x3004
+^MAccess Address : 0x020e7800
+^MSpecial Status : 0x0125
+^M^G
+^M 67b48 vxTaskEntry    +10 : shell (1, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+^M 53b42 shell          +12e: 53b60 ([1, 0, 3, 7f, 0])
+^M 53cf0 shell          +2dc: execute ([f6bbe2, 1, 0, 0, &ioGlobalStdSet])
+^M 53e0e execute        +a6 : yyparse ([f6bbe2, 0, 1, f6bc64, f6bbe2])
+^M 89586 yyparse        +546: 87f38 (4dca0c, 4dca2c)
+^M 88042 yystart        +734: printf (20e7800, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+^M 25c14 printf         +16 : fioFormatV ([20e7800, f6bac0, 26694, 1, f6bb48])
+^Mshell restarted.
+5. ->id
+^Mid = 0x4ef630: value = 34502656 = 0x20e7800
+6. -> hnd=1
+7. ->instCfgIDToHandle(id, &hnd)
+8. ->hnd /* now we have handler to use one function in chmbCln */
+hnd = 0xd70d4c: value = 6160132 = 0x5dff04
+9. ->cmd ="REMOTE CLN PROCESS_DATA 2 25 3345.45 3345.66 4456.33 5566.3"
+^Mnew symbol "cmd" added to symbol table.
+^Mcmd = 0x4eb990: value = 5122052 = 0x4e2804
+10. ->chmbClnGateTester(hnd,cmd)
+^Mvalue = 0 = 0x0
+
+9. ->cmd="REMOTE CLN PROCESS_DATA 25 2 3345.45 3345.66 4456.33 5566.3"
+10. -> chmbClnGateTester(hnd,cmd)
+10. -> chmbClnGateTester(0xhnd, cmd)
+
+this procedure is the same as use this function after reboot the system
+
+- remove warning/error from liftElevator while compiling
+before
+======
+ABS_POSITION or the map position (ecr#31) */
+3637        if ((elv_p->slots_table == amtNULL) ||
+3638        ((slot_hnd = elv_p->slots_table[new_slot_num]) == amtNULL) ||
+3639        ( slotGetAttr ( slot_hnd,slotCALC_POSITION_ATTR_ID,&slot_position ) != amtOK ) )
+3640      {
+
+after
+=====
+slot_hnd = elv_p->slots_table[new_slot_num] ;
+	  if ((elv_p->slots_table == amtNULL) ||
+		  (slot_hnd == amtNULL) ||
+			( slotGetAttr ( slot_hnd,slotCALC_POSITION_ATTR_ID,&slot_position ) != amtOK ) )
+we have no warning for uninitialized slot_hnd used.
+
+another error
+before
+======
+amtLOCAL liftERR_CODE
+liftElevatorReachSlot
+(       liftOBJ *   lift_p      /*  IN */
+		,const  amtUINT32   new_slot_num    /*  IN */
+		,const  liftPOSITION    new_position    /*  IN */
+)
+{
+
+if (new_position == liftCOOL)
+{ new_slot_num = 1;
+
+after
+=====
+, amtUINT32   new_slot_num    /*  IN */
+remove const in front of new_slot_num to change the new_slot_num value.
+
+- how to exit vme CPU
+>press shift + ~
+>press .
+
+- how to do tip hardwire
+Procedure of tip hardwire
+1. type tip hardwire
+2. you can connected message shown in your screen
+3. ctrl + x     for cup resetting
+4. press Esc key for bring/stop each parameter step
+5. startup script	:/usr1/amat/current_rls/bin/start_kernel_heater
+
+
+Or if cpu is configured already
+this is better way of doing it
+1. rlogin a1_cha
+2. type ->bootChange        to change boot parameters
+		this changes are affected immediately
+
+- how to configure new cpu (like tip hardwire)
+1. connect to rs-232 between PC serial port and Vme CPU console 
+2. run hyper terminal in pc with cpu console after connection between them.
+3. press reset button in cpu and shows ...... in PC screen
+4. press space bar within 1 second to bring setup screen of VxWorks
+5. after seeing icon, you can see arrow sign in the hyper terminal screen of the PC screen from cpu
+6. change ip, host name (a1_cha)
+7. after finishing modifying
+8. press @ to reboot with new changes.
+
+Boot ROM commands related VxWorks
+command			Description
+h				Help command - print a list of available boot commands
+?				same as h
+@				Boot(load and execute the file) using the current boot parameters
+p				Print the current boot parameter values
+c				Change the boot parameter values
+l				Load the file using current boot parameters, but without executing
+g adres			Go (execute) at hex address adrs
+d adrs[,n]		Display n words of memory starting at hex address adrs
+				If n is ommitted, the default is 64
+m adrs			Modify memory at location adrs(hes). The system will prompt for modification
+				to memory, starting at the specified address
+				
+				It prints each address, and the current 16-bit value at that address, in turn.
+				The user can respond in one of several ways:
+				RETURN		Do not change that address, but continue prompting at the next address.
+				number		Set the 16-bit contents to number.
+				.(dot)		Do not change that address, and quit.
+f adrs, nbytes, value	Fill nbytes of memory, starting at adrs with value
+t adrs1, adrs2,nbytes	Copy nbytes of meory, starting at adrs1 to adrs2
+s [0/1]			Turn the CPU system controller ON(1) or OFF(0) (only on boards that have software
+				enable of the system controller)
+e				Display a synopsis of the last occuring VxWorks exception
+n netif			Display the address of the network interface device netif
+
+Entering Boot Parameters
+Before booting VxWorks, you must set the configuration parameters for the boot, including
+the host and target network addresses, the file to be booted, the user name, etc. 
+(Other boot stratiges are discussed in 6. Network) To display the current boot parameter, enter:
+[VxWorks Boot] : p
+You will see a display similar to the following. The meaning of each of these parameter is 
+discribed in the next section. (Note that the p command does not actually display blank fields
+as in this illustration.)
+
+boot device			:ln
+process number		:0
+host name			:mars
+file name			:/usr/vw/config/target/vxworks
+inet on ethernet(e)	:90.0.0.50
+inet on backplane(e):
+host inet (h)		:90.0.0.1
+gateway inet(h)		:
+user (h)			:fred
+ftp password (pw)	:
+(blank = use rsh)
+flags (f)			:0x0
+target name(tn)		:photos
+startup scripts(s)	:/usr/vw/config/target/setup.cmd
+other (o)			:
+
+To change the boot parameter, enter:
+[VxWorks Boot]	: c
+
+You will be prompted for each parameter. 
+If the contents of a particular field do not need to be changed, just press RETURN. 
+If a field should be cleared, enter a period(.), then press RETURN.
+If you want to quit before completing all the parameters, type ^D.
+
+Network information must be entered to match your particular system configuration.
+The Internet addresses should correspond to thos in /etc/hosts on your UNIX host, as described
+perviously.
+
+If your target board has nonvolatile RAM(NVRAM), the boot parameters will be stored there
+and retained even if the system power if turned off. For subsequent power-ons or system resets,
+the boot ROMs will use these stored parameters for the automatic boot configuration.
+
+
+* end of VXWORKS*
+
+*** FUNCTION ***
+- how to translate type casted pointer function
+/*ex) ( * ( slotTYPE * ) value_p ) = slot_p -> slot_type; /* from slot_cdf.c */
+value_p is type cast to pointer return a pointer
+ex2)
+char* const *(*next) ();
+"next is a pointer to a function returning a pointer to a const pointer-to-char"
+From Chapter3 Unscrambling Declarations in C
+*/
+
+- how to debug the error on event line (program line : 6450182.)
+/*
+W 11/21/00 11:54:17 /cluster:$1/chmbCVD:$CHB/safecon:safecon      | 234505   | Software error. Task "
+PROCESS" with task ID 0x30e8d0 is suspended. Reaction is restart
+A 11/21/00 11:54:18 /cluster:$1/chmbCVD:$CHB/process:x            | 11287    | Fault in execution of
+recipe rcpproc:cvd_delay_hch on substrate wafer:CHB-1-0. Program line: 6450182.
+Recipe processing time: 0 msec
+
+a. goto /ch/process/src
+>fgrep "Fault in " *.cdf    /*format string */
+>vi process.cdf
+EVENT: fault
+
+goto processTask.c
+>vi processTask.c
+find /FAULT_EVENT
+		  ,processFAULT_EVENT_ID
+		,&process_hnd->recipe_id
+		  ,&process_hnd->wafer_id
+		,&line
+	  ,&program_hnd->rcp_elps_time);
+
+   }
+	break;
+line is 3rd parameters.
+
+
+find line where line comes from
+   if ( fault )
+	  {
+			program_counter = program_hnd->stack[PROGRAM_FRAME].program_counter;
+			  pprogGetInstruction ( process_hnd->recipe_hnd,
+							  program_counter,
+							  &instruction);
+	 }
+
+	*line = instruction->line;
+   traceVOID_RETURN ;
+
+}  /* End of function processGetRecipeExecutionPercentage */
+
+line came from instruction in function pprogGetInstruction
+
+goto ch/pprog/src
+
+>vi pprog.c
+find pprogGetInstruction
+Can tell the line number (instruction) build from here.
+*/
+
+- how to use atm robot computer
+there is 2 mode (Computer mode, Keyboard mode)
+exchange 2 modes by pressing Esc key
+
+Keyboard mode : Atm robot only    => Computer mode ( >amrobot )
+Computer mode : talking to the Sun  => Keyboard mode ( >quit )
+
+We can modify data file (SET.MCR) from Keyboard mode only
+> mcr set 1
+> lst       /* list set.mcr file */
+> szd casa 15   /* example of changing value */
+> sav       /* save the changed value */
+
+UPLOAD/upload
+0. change to the keyboard mode
+1. mcr set 1
+2. change computer mode (Esc)
+3. at the Sun, goto gwin, goto win -> load (look for robotAtmUpload) , set True
+	clusterFE:2/chmbxfer:FE/xferport:x/robotAtm:main;save_cal_data, set True
+
+		  ATTRIBUTE : save_cal_data
+			   DESCRIPTION:
+			"Upload the calibration data from Atm robot controller and"
+			 "update the calibration file."
+		  TYPE: amtBOOL
+		   ATTR_TYPE: CONTROL
+		 END_ATTRIBUTE
+
+- how to use stat
+###### robotAtmDownLoadFile() in robotAtm.c #####
+1. include
+#include <sys/stat.h> to robotAtm.c
+
+2. adding the followings to chech file size :
+
+/* yhwang adding for protecting overwriting empty cal. data file */
+struct stat buf_download;
+/* end of yhwang addding */
+
+/* yhwang adding for protecting overwriting of empty cal. data file to robotAtmDownLoadFile() */
+	stat(file_name, & buf_download);
+	if ( buf_download.st_size < 400 )
+	{   printf("the size of %s is %d .\n", file_name, buf_download.st_size);
+		errorReportAndReturn2 ( robotSOFTWARE_ERROR, "robotAtm Can't download %s file because of %5d size",
+		file_name, buf_download.st_size);
+	}
+/* adding of yhwang of robotAtmDownLoadFile() */
+
+- how to know what we have to use handle (obj/classHND) or object (classOBJ) from another module
+i.e.        slot            slotMgr
+if /* PUBLIC DEFINITIONS */
+includes slotOBJ typedef    then we can use slotOBJ = ***
+but if Not public       then we must use slotHND to get private slotOBJ arguments from slotMgr
+
+* generally, slotOBJ's arguments are privates which means
+to change slotOBJ's arguments from other module, there are some restrictions(functions) to change
+
+- how to change amtPRIVATE to amtLOCAL
+in case slotMgr_handld_unavailable
+
+to use from another file
+- how to compile slotMgr
+in obj/vx dir
+ld68k -r -o chmbCmdLib.o chmbLib_svc.o serviceLib.o slotLib.o slotDelayLib.o slotMgrLib.o portLib.o liftLib.o
+
+and then usr_big_lib mf
+
+- how to use calibration_save_list.txt file
+After modification any module which is related to calibration data
+such as cool_offset, slot_offset, xfer_offset, intlk_offset, hot_offset
+Should be include calibration_save_list.txt file so that -l reboot does not lose
+
+Don't forget to check in calibration_save_list.txt file too.
+
+- how to update wafer_id
+Paul fixed problem
+		Router commit xfer
+					|
+					\/
+		xferspv ->  commit chmb - chmbCln : change slot_status to unavailable so that cannot be updated wafe
+
+					move the robot
+
+					put sub
+
+					slotMgr, change slot_status
+
+					xferEnd     ( PUT commit chmb here from above so that we have time to update wafer_id)
+Good
+
+- how to get light tower information/table
+tft23:/aktvol/rls/10_0a/plt_exports/data/lut>vi light_map.tbl
+
+*** pointer to asign pass ***
+slotMgrFindOneSlotForLoad
+   (
+		 slotMgrHND         slotMgr_hnd
+		  ,amtUINT32          *slot_num
+		  )
+to return slot_num, use pointer
+
+*slot_num = ret_slot_num + 1;
+
+slotMgrFindWaferID
+	 (
+	   slotMgrHND         slotMgr_hnd
+		,amtUINT32          slot_num
+		,instID      *wafer_id
+   )
+
+usually use &wafer_id
+but since wafer_id is pointer, already holds address no need to have &
+(if (slotGetAttr( slot_entrance_p->slot_hnd, slotWAFER_ID_ATTR_ID, &wafer_id) != amtOK) )
+   if (slotGetAttr( slot_entrance_p->slot_hnd, slotWAFER_ID_ATTR_ID, wafer_id) != amtOK)
+
+- how to comment out for whole block which includes /* */ line already
+put the below to the block
+
+#if 0
+
+block
+block
+
+#endif
+
+- how to slove Load/Exchange/Cool button Move to button problem
+======================== Problem:  ===========================
+YH, elevatorcalib_goto_slot_and_position, req_slot_no = 1
+, lift_position = 17738280
+YH in elevatorcalib_pass_cb,after toggle func lift_positi
+on is 3
+YH, elevatorcalib_goto_slot_and_position, req_slot_no = 1
+, lift_position = 3
+YH in elevatorcalib_pickup_cb,after toggle func lift_posi
+tion is 2
+YH, elevatorcalib_goto_slot_and_position, req_slot_no = 1
+, lift_position = 2
+
+ask Inchen
+
+MrmNcreateCallback = procedure elevatorcalib_pickup_cb();
+		XmNvalueChangedCallback = procedure elevatorcalib_pickup_cb();
+!        MrmNcreateCallback = procedure elevatorcalib_pass_cb();
+		XmNvalueChangedCallback = procedure elevatorcalib_pass_cb();
+!        MrmNcreateCallback = procedure elevatorcalib_cool_cb();
+		XmNvalueChangedCallback = procedure elevatorcalib_cool_cb();
+
+amtPRIVATE void
+   elevatorcalib_pass_cb
+  (
+   Widget                 w,
+   caddr_t                 user_data,
+   XmToggleButtonCallbackStruct    *call
+   )
+{
+  amtCHAR_P    func_name = "elevatorcalib_pass_cb";    /* DBG - Function name. */
+
+ liftPOSITION         lift_position;
+traceFUNC_ENTER ( func_name );   /* DBG */
+
+/* yhwang added below to get Exchange mode selection */
+
+
+   if ( XmToggleButtonGetState (w) )
+   {      lift_position = liftXCHG;
+
+   printf("\nYH in elevatorcalib_pass_cb,after toggle func lift_position is %d", lift_position);
+   }
+	  elevatorcalib_update_static_val ( w, elevatorcalibLIFT_POSITION,&lift_position);
+
+		 traceVOID_RETURN ;   /* DBG */
+
+ ======>>>> Here's the problem.
+for example first time Load selected, then elevatorcalib_pass_cb has MrmNcreateCallback
+which means call/execute "elevatorcalib_pass_cb" and update lift_position
+since Load selected, for "elevatorcalib_pass_cb" function's lift_position value is random number
+
+so by removing MrmNcreateCallback = procedure elevatorcalib_pass_cb() from MMI
+we can solve this problem.
+
+======================== Problem solved  ======================
+
+- how to compose functions for getting available slot number
+
+in chmbCln.c
+============
+amtPUBLIC chmbERR_CODE
+	chmbClnGateHandle
+ (   chmbHND               chmb_hnd,   /*  IN */
+	  chmbXFER_END_STATUS   xfer_status
+   )
+
+	case chmbClnREADY_TO_LOAD:
+	   if (chmbClnFindSlot(chmb_hnd,&slot_no)==chmbOK)
+
+amtPRIVATE chmbERR_CODE
+   chmbClnFindSlot
+   (
+	chmbHND     chmbCln_hnd,/*  IN */
+ amtUINT32   *slot_no    /* OUT */
+ )
+
+	if ( slotMgrFindOneSlotForLoad(chmb_p->chmb_mgrs.slot_mgr_hnd, slot_no) != slotMgrOK)
+	   err_code = chmbERROR;
+
+in slotMgr_service.c
+====================
+
+amtPUBLIC slotMgrERR_CODE
+ slotMgrFindOneSlotForLoad
+  (
+  slotMgrHND         slotMgr_hnd
+ ,amtUINT32          *slot_num
+   )
+
+ *slot_num = ret_slot_num + 1;
+
+pointer passing
+===============
+in slotMgr_services.c
+slotMgerSetProcessData(a,b, *c)
+SetAttr(, , c)
+
+slotMgerSetProcessData(a, b, c)
+SetAttr( , , &c)
+
+- how to add intlk to ll ul mf
+ please refer to p24_intlk.txt
+
+- remove warning/error from liftElevator while compiling
+before
+======
+ABS_POSITION or the map position (ecr#31) */
+3637        if ((elv_p->slots_table == amtNULL) ||
+3638        ((slot_hnd = elv_p->slots_table[new_slot_num]) == amtNULL) ||
+3639        ( slotGetAttr ( slot_hnd,slotCALC_POSITION_ATTR_ID,&slot_position ) != amtOK ) )
+3640      {
+
+after
+=====
+slot_hnd = elv_p->slots_table[new_slot_num] ;
+	  if ((elv_p->slots_table == amtNULL) ||
+				(slot_hnd == amtNULL) ||
+			( slotGetAttr ( slot_hnd,slotCALC_POSITION_ATTR_ID,&slot_position ) != amtOK ) )
+we have no warning for uninitialized slot_hnd used.
+
+another error
+before
+======
+amtLOCAL liftERR_CODE
+	liftElevatorReachSlot
+(       liftOBJ *   lift_p      /*  IN */
+		,const  amtUINT32   new_slot_num    /*  IN */
+		,const  liftPOSITION    new_position    /*  IN */
+	)
+{
+
+	if (new_position == liftCOOL)
+	{ new_slot_num = 1;
+
+after
+=====
+	, amtUINT32   new_slot_num    /*  IN */
+remove const in front of new_slot_num to change the new_slot_num value.
+
+- how to use amtlogMsg and printf
+	amtlogMsg: we ONLY can use if that module is used in real time
+for example
+	userSysStat module is running at SUN work station
+	but slotMgr module is running at VxWorks
+therefore, amtlogMsg cannot use in userSysStat but slotMgr
+
+- how to know the difference amtNAME, amtNAME32, amtFULL_PATH_NAME
+amtNAME:    string size 20
+amtNAME:    string size 32
+amtFULL_PATH_NAME:  string 256
+
+example for amtNAME
+amtNAME        agv_mode; /* for agv/mgv mode */
+}machineMACHINE_OBJ, *machineMACHINE_OBJ_P;
+
+in machineGetAttr()
+case machineAGV_MODE_ATTR_ID:
+1.  strcpy ( value_p,  machine_obj_p->agv_mode ) ;
+2.  strcpy ( (amtNAME *) value_p,  machine_obj_p->agv_mode ) ;
+3.  strcpy ( (char *) value_p,  machine_obj_p->agv_mode ) ;
+break;
+even decleared amtNAME, we'd better use 3 because strcpy use char * as variables.
+
+example 2:
+case slotMgrSLOT_PROCESS_DATA_ATTR_ID:
+1.  strcpy(( * ( amtFULL_PATH_NAME * ) value_p ), slotMgr_p-> slot_process_data);
+2.  strcpy(( ( amtFULL_PATH_NAME * ) value_p ), slotMgr_p-> slot_process_data);
+3.  strcpy(( ( char * ) value_p ), slotMgr_p-> slot_process_data);
+ break;
+ *** 1 is not right, should be 2 remove * from 1
+ finally 3 is good one without any compiling error
+
+- how to know SetAttr, GetAttr, cfgGetEC, instGetEC, NotifyECChange
+for example, agv_mode from gate module
+A: using commandCmdSetAttr()
+	machine module: GetAttr
+		either SetAttr or NotifyECChange
+		--------------------------------
+					NotifyECChange is useful for gwin to set EC
+						- CheckAttr
+B: using cfgSetEC
+	machine module: GetAttr
+					NotifyECChange
+						- CheckAttr
+No need to have SetAttr and NotifyECChange both, either SetAttr or NotifyECChange
+
+instGetEC: get EC from inst, bad because some time one module try to get EC but
+the other module/instance is not ready
+cfgGetEC: get EC from database, good
+
+thank you Inchen
+***** about merging CONTROL ATTR and EC together ***
+in pid.cdf
+p_const : CONTROL
+p_const		under pidOBJ
+		do pidGetAttr()
+			case pidI_CONST_ATTR_ID:
+		 		 * ( amtREAL32 * ) value_p = pid_p->i_const;
+			break;
+		do pidSetAttr()
+			case pidI_CONST_ATTR_ID:
+				  pid_p->i_const = * ( amtREAL32 * ) value_p;
+			break;
+def_p_const: EC
+def_p_const	under pidEC_TABLE
+	 	pid_read_EC()
+			- instGetEC
+		do SetAttr()	does not do anything, NO NEED
+		do GetAttr()
+			case pidDEF_I_CONST_ATTR_ID:
+				  * ( amtREAL32 * ) value_p = pid_p->ec_table.def_i;
+			break;
+******* that's it for difference between ATTR(CONTROL) and EC ***
+
+- how to use function pointer
+				robot					robotAKT(derived class)
+				=====					=========
+
+MMI invoke 		Abort
+xferport
+			robot_p->robot_methods->abort_fp
+
+amtPRIVATE robotMETHODS_TABLE robotAKT_methods_table =
+{
+  ( robotINIT_FP ) robotAKT_init,
+	( robotDELETE_FP ) robotAKTDelete,
+	  ( robotABORT_FP ) robotAKTAbort,
+
+how function pointer works
+a. when MMI abort robotAKT
+b. from derived class robotAKT, robotAKTAbort execute
+how
+when robotAKT module initialization, copy all functions pointer to robot from robotAKT by robotHND
+(all of robotAKT function pointer is copied to robot module memory by robotHND)
+robotAKT_init,
+robotAKTDelete,
+robotAKTAbort,
+Therefore, when MMI abort robotAKT, it does robotAKTAbort which exists in robotAKTOBJ's robotHND
+
+						robotAKTOBJ's memory layout
+						============================
+		
+robotHND ------>		robotOBJ
+
+						-----------------
+
+
+
+						robotAKTAbort,etc
+
+						------------------
+
+/* link in methods table */
+  robot_p->robot_methods = &robotAKT_methods_table;
+
+if we don't do this link, we have to use 
+slotDelay_p->slot.methods_p->process_done_fp
+
+thanks Jon
+
+- how to use amtFULL_PATH_NAME_LEN
+we can just use this which decleared in gen/amt/src
+
+- how to differ from strcpy and strncpy
+
+/*    strcpy(slotMgr_p->slot_process_data,  (char *) value_p); */
+  strncpy(slotMgr_p->slot_process_data,  (char *) value_p, sizeof(amtFULL_PATH_NAME)-1);
+	slotMgr_p->slot_process_data[amtMAX_FULL_PATH_NAME_LEN] = '\0';
+we can use amtFULL_PATH_NAME which decleared in gen/amt/src
+
+i.e.
+to copy ABCD
+first src should be less than size of dest
+strncpy(slotMgr_p->slot_process_data,  (char *) value_p, sizeof(amtFULL_PATH_NAME)-1);
+ABCD
+after slotMgr_p->slot_process_data[amtMAX_FULL_PATH_NAME_LEN] = '\0';
+ABCD\0	\0 NULL character
+
+- how to fix/solve warning: implicit declaration of function `pidCalcPBand'
+WAS
+amtLOCAL amtVOID
+   pidCalcPBand
+  (
+	  pidOBJ  * pid_p /* IN */
+  )
+  NO Good
+  because from another module calls this function by passing pid_hnd
+IS
+therefore,
+amtPUBLIC amtVOID
+   pidCalcPBand
+  (
+	  amtHANDLE   pid_hnd /* IN */
+  )
+ {
+ amtCHAR_P    func_name = "pidCalcPBand"; /* DBG - Function name. */
+pidOBJ *pid_p = ( pidOBJ * ) pid_hnd;
+
+ traceFUNC_ENTER ( func_name );   /* DBG */
+
+  calling from tempdev
+
+pidCalcPBand(tempdev_p->monitor_p->pid_hnd);
+
+- how to get slotMgr instID */
+/* Get slotMgr instID */
+#if 0
+   if ( instSetFixedID ( wh_chmb->chmb_id,
+		 chmbSLOTMGR_X_FIXED_SUB_INSTANCE_ID,
+	   &slotMgr_id )      != instOK )
+  {
+	  errorReportAndReturn0 ( whERROR, "can't find id of slot mgr" );
+  }
+  if (instCfgIDToHandle (slotMgr_id, & (slotMgr_hnd ) ) != instOK)
+  {
+	   errorReportAndReturn0 ( slotMgrERROR, "inst can't find slotMgr hnd" );
+  }
+
+ slotMgrGetAttr( slotMgr_hnd, slotMgrSLOT_PROCESS_DATA_ATTR_ID,
+			   &wafer_header->pdc );
+#endif
+
+- how to GetAttr which is running VME CPU from SUN UNIX
+use commandCmdGetAttr
+if ( instSetFixedID ( wh_chmb->chmb_id,
+	 chmbSLOTMGR_X_FIXED_SUB_INSTANCE_ID,
+	&slotMgr_id )      != instOK )
+{
+   errorReportAndReturn0 ( whFAILURE, "can't find id of slot mgr" );
+}
+/* use commandCmdGetAttr because wh is running in SUN not CPU */
+if (commandCmdGetAttr(slotMgr_id, slotMgrSLOT_PROCESS_DATA_ATTR_ID,
+					 &wafer_header->pdc) != commandOK)
+{
+   errorReportAndReturn0(whFAILURE, "Fail to get SLOT_PROCESS_DATA");
+}
+
+- how to compile machine/machineLib.o userSysStat module
+after compile each
+and browse out cc_exe and modify mat_makefile
+and type "make mat"
+
+and bring executable file /sparc to the machine to test
+
+and bring it over with cc_exe
+
+- how to compile or make effect for superset_cvd module with fname.mk
+1. copy fname.mk to config/build/cfga dir
+2. build_config -gvf
+3. bcm
+
+- how to fix MCC SUSPENSION from alpha3 for robotAtm
+Duane,
+Don't turn on DBG in robotAtm module on rebooting/Aborting
+If we do turn on DBG, MCC SUSPENSION & over flow happen in schan due to message is too big
+for Abort function
+
+
+* end of FUNCTION *
+
+
+*** UNIX ***
+- how to use tar
+>fmount
+>tar -cvf /dev/fd0 filenames "copied to floppy"
+>tar -tvf /dev/fd0              " to display files in floppy"
+>tar -xvf /dev/fd0              "copied files from floppy to workstation"
+>fumount
+
+## about using cd rom with Solaris 2.8
+>volcheck instead of fmount
+tft40% volcheck
+after done
+tft40% eject floppy
+If I use fmount, then cd rom doesn't mount because fmount kills daemon.
+therefore, use volcheck, eject floppy.
+with this way we can use cd rom which is automatically mounted because daemon running.
+after finishing using cd room, close all window for this cd rom and application such as acroread.
+
+If I have to compress, then the procedure is as following:
+goto the directory
+>compress *	/* for all files */
+>tar -cvf /dev/fd0 filenames
+in the destination
+>fmount
+>tar -xvf /dev/fd0
+>uncompress
+
+for pc format
+>fmount
+>cp filenames /floppy
+>cd /floppy >ls "to see the files in floppy"
+>cd     "go back to unix"
+>fumount        */
+
+- how to set remote display
+/*<tft23>xhost +
+<adt>setenv DISPLAY tft23:0.0
+*/
+- how to solve when "Device busy" message from tar command
+>volmgt stop
+and try again. this msg happen because of not using eject
+
+- how to check who's using machine
+/* ps -eaf | grep run/hbserver
+*/
+
+- how to find where the errorReport function is
+/* Usually error is module name
+1. goto config
+2. >ls -d */error*
+*/
+
+- how to check the machine is alive or not
+/* ping machine name */
+
+- how to use grep
+/* To check whether we have 13 instances or 1 instance
+goto /aktvol/rls/4_0x/plt_exports/config/build/lego/
+>grep slotMgr *.icf
+>grep slot *.icf
+*/
+
+- how to update/touch the files
+/*> touch file names
+> kill % to see what
+> finger to see which machine is used
+*/
+
+-  how to find files
+> find . -name \*intlk -print
+find / -name shape.c -print
+or
+grep "\-m\-"		to find -m
+grep -i 			ignore the case
+grep -l 			don't list the lines of text that match, just file name
+grep -v 			select lines that don't match
+grep -w				only select lines that contain whole words
+
+egrep		: an enhanced grep that allows you to specify multiple search strings
+egrep "Xopen|Xcreate" *.c
+
+
+- how to remove all intlk
+/* > goto data/intlk
+> ls -l *.intlk
+> rm *.intlk
+> touch *.intlk one by one /* if it doesn't exist, creates it */
+
+- how to reboot the adt(tft28) machine
+/* adt> shutdown_agent -h now
+or
+tft23> su pwd:adtroot
+adt>
+# sync
+# init 0 - firmware, 5 - shutdown, 6 - reboot
+# init 6
+>	power-off	/* to power off the system */
+*/
+
+- how to login root
+passwd: Go4AWalk
+- how to login tconfig
+passwd: buildme
+
+- how to login tftsrv as root
+passwd: ThisIsTftServer
+
+- how to set up house network	/ about acls ACLS routeNetAdd
+1. first modify /etc/hosts
+	by adding 152.135.244.64 15kbeta
+	****** WAS ****
+	# secondary network (hostname.hme0)
+	195.9.201.1   ups_network
+	195.9.201.2   a1_ups
+	****** IS ****
+	# secondary network (hostname.hme0)
+	#195.9.201.1   ups_network
+	#195.9.201.2   a1_ups
+	152.135.244.64 15kbeta
+2. modify hostname.hme0
+	***** WAS *****
+	ups_network
+	***** IS *****
+	15kbeta
+
+3. reboot
+
+
+- how to set up house network	the case of using primary or secondary network
+regarding to  acls ACLS routeNetAdd
+
+case 1 (using secondary network)
+
+1. ups_network == gate's IP address
+2. a1_ups should be subnet of ups_network
+3. acls/acls_robot:	same subnet as gate
+== hosts file ==
+#127.0.0.1   localhost local
+# primary network (hostname.hme0)
+192.9.201.11   adt   loghost
+# targets
+192.9.201.1 a1_mf
+192.9.201.2 a1_cha
+192.9.201.3 a1_chb
+192.9.201.4 a1_chc
+192.9.201.5 a1_chd
+192.9.201.6 a1_che
+192.9.201.7 a1_chf
+# secondary network (hostname.hme1)
+168.219.7.6	acls
+168.219.7.6 acls_robot
+168.219.7.11 gate
+168.219.7.12 ups_network
+168.219.7.14 a1_ups
+
+
+case 2 (using primary network ACLS use our default: 192.9.201.8 )
+
+1. ups_network == any IP defined from customer's host
+2. a1_ups : subnet of ups_network (192.9.201.x)
+3. acls/acls_robot: 	subnet of adt(192.9.201.8 for acls/acls_robot)
+4. gate:	same as adt(192.9.201.11) 
+5. routeNetAdd ( not necessary )
+== hosts file ==
+#127.0.0.1   localhost local
+# primary network (hostname.hme0)
+192.9.201.11   adt   loghost
+# targets
+192.9.201.1 a1_mf
+192.9.201.2 a1_cha
+192.9.201.3 a1_chb
+192.9.201.4 a1_chc
+192.9.201.5 a1_chd
+192.9.201.6 a1_che
+192.9.201.7 a1_chf
+# secondary network (hostname.hme1)
+195.9.201.1 ups_network
+195.9.201.2 a1_ups
+192.9.201.8 acls
+192.9.201.8 acls_robot
+192.9.201.11 gate
+	
+
+- how to get to local dir
+/* cd /export/home */
+
+- how to see file system
+/* df . /* current */
+
+-  how to go to local dir
+/*>cd /usr1/yhwang
+>cd /export/home        /* from network
+>mount
+*/
+
+- how to save display to file
+/* man xterm > filename
+*/
+
+- how to compare line by line
+sdiff file1 file2 | more
+
+- how to repeat the last command in vi
+	use dot .
+	ex)to change 22 to 2
+	cw -> 2 -> esc
+	move next one -> press .
+
+- how to reboot the sun
+login >root
+-passwd:adtroot /* to reboot the Sun */
+
+- how to add/insert in vi
+o
+:e #	--> means go back
+i.e. vi file1 file2
+
+- how to redo the last command
+adt%>!r     /* run.mcc -l ... */
+- how to go the end of file in vi
+shift + g
+shift + n   /* go line 1 */
+
+- how to execute command in vi
+:e command
+- how to comment in vi
+! comment....
+- how to connect to real machine
+>telnet akt3002 :rlogin akt3002
+
+- how to fix wired font in tft15
+/* setenv TERM vt100  for dtterm error
+add setenv TERM vt100 in .login file
+OR type
+tft15>set term=xterm
+
+*/
+- how to make not to ask Y for cp command?
+/*>unaliases cp
+*/
+- how to display current dir
+/* >alias cd 'cd \!*; set prompt = "$cwd\! >"'
+*/
+
+- how to search / in vi
+i.e. try to search */
+/*\/        \/ means /
+
+- how to see filename in vi
+ctrl + g
+
+- how to see the checked in files
+goto
+> cd /vol/mcc/tft_2/ch/robotAtm/src/RCS for 3_0a
+> cd /aktvol/mcc/akt4300/ch/robotAtm/src/RCS for 4_0c
+>
+>rlog *,v | more
+To see all of changes of specific files
+goto /aktvol/rls/data
+>grep module_name Macti* | grep rls_ver. to see all activities of rls_ver. of module
+
+
+- how to changed/replace to the new word in vi
+:1, $s/old_words/new_words/g        g: means change all at a time
+:1, $s/aktRobotC5500/aktRobotDaihen
+
+- how to access s/w lab
+password: 2505044
+
+- how to fix HD crash/problem while booting up
+try fsck -y
+** when usr1 partition is corrupted
+do the following:
+1. login as root
+2. fsck -y partition	/* partition : root partition and amat/service partition is different
+								so when usr1 partition is corrupted, we cannot use amat/service
+								therefore, we need to login root to use fsck
+							*/
+
+- how to come over the zcat usage
+error file is not compressed format when execute
+zcat filename.tz | tar xvf -
+use
+cat filename | uncompress | tar xvf -
+meaning: pipe(|) and
+
+OR
+rename file.tz to tar.gz by mv file.tz file.tar.gz
+and >gunzip file.tar.gz
+	>tar xvf file.tar
+
+- how to use mount table (mnttab)
+	refer to man mnttab
+	but doesn't work after rebooting
+
+- how to solve "Bad magic number"
+	a. doing run.mcc -l -z
+		( this cause from running simulator run.mcc -ch )
+		b. check chmbHeat/slotMgr create under slotDelay or not.
+
+		c. check whether someone every do run.mcc -ch by seeing current_rls/mcc_boot.log
+
+- how to lan LAN
+adt:~ 15 > more /etc/hosts
+#
+# Internet host table
+#
+127.0.0.1       localhost
+# primary network (hostname.hme0)
+192.9.201.11    adt     loghost
+# targets
+192.9.201.1     a1_mf
+192.9.201.2     a1_cha
+192.9.201.3     a1_chb
+192.9.201.4     a1_chc
+192.9.201.5     a1_chd
+192.9.201.6     a1_che
+192.9.201.7     a1_chf
+# secondary network (hostname.hme1)
+152.135.244.53   alpha10
+152.135.244.93   gx110
+152.135.244.108   a1_ups
+adt:~ 16 > ping 152.135.244.93
+152.135.244.93 is alive
+
+
+from 10K machine
+to talk to MECS PC
+
+/usr1/amat/dshen/socks
+adt:socks 28 > ls
+udpclient.o  udpserver.o
+adt:socks 29 > udpserver.o 1800
+ port_num 1800
+  udpserver.o: waiting for data on port UDP 1800
+  udpserver.o: from 152.135.244.53:UDP32850 :
+udpserver.o: from 152.135.244.53:UDP32850 :
+
+ udpserver.o: from 152.135.244.53:UDP32850 : test
+  udpserver.o: from 152.135.244.93:UDP9001 : dsdadsfdasfdsfds
+   udpserver.o: from 152.135.244.93:UDP9001 : Duane is the greatest engineer on this fucking planet
+	udpserver.o: from 152.135.244.93:UDP9001 : Hi Duoyan
+ udpserver.o: from 152.135.244.53:UDP32854 : hey
+  udpserver.o: from 152.135.244.53:UDP32854 : hey
+   udpserver.o: from 152.135.244.93:UDP9001 : kjlklkl
+
+ another X window
+   adt:~/dshen 19 > cd socks/
+ adt:socks 20 > ls
+udpclient.o  udpserver.o
+adt:socks 21 > udpclient.o 152.135.67.53 1800
+udpclient.o: Permission denied.
+adt:socks 22 > chmod 777 *
+adt:socks 23 > udpclient.o 152.135.67.53 1800
+udpclient.o: sending data to '152.135.67.53' (IP : 152.135.67.53) port 1800
+>>text
+>>quit
+adt:socks 24 > udpclient.o 152.135.244.53 1800
+udpclient.o: sending data to '152.135.244.53' (IP : 152.135.244.53) port 1800
+>>
+>>
+>>
+>>test
+>>quit
+adt:socks 25 > udpclient.o 152.135.244.53 9001
+udpclient.o: sending data to '152.135.244.53' (IP : 152.135.244.53) port 9001
+>>hey
+>>hey
+
+- how to use cat
+cat filename
+can -n filename to display line number
+
+- how to check the module is locked by whom
+goto /aktvol/mcc/akt10k/ch/
+and then goto module dir
+then goto RCS
+rlog *,v
+
+tft23:/aktvol/mcc/akt10k/ch/asense/RCS>rlog *,v
+
+- how to use vi command
+#########   vi map to move cursor   #########
+
+0SEM_ID  rl_request_sem;         /* Semaphore for waiting rl_request signal */
+
+0^.......cursor.............$
++...........................$
+
+G end of file
+^ begining of current line
+% to find couple symbol
+b before word
+w next word
+e end of current word
+E end of next word
++ first word of next line
+- above line's first word
+) to begining of next paragraph
+( to begining of previous paragraph
+
+ctrl shift F    move to one screen Down(Forward)
+ctrl shift B    move to one screen UP(Backward)
+ctrl shift E    move to one line UP remaining current cursor
+ctrl shift Y    move to one line Down remaining current cursor
+
+- how to changed/replace to the new word in vi
+:1, $s/aktRobotC5500/aktRobotDaihen
+
+#########   vi map to move cursor   #########
+
+- how to keep original date of destination file
+cp -rp filename /dir
+
+- how to see ip address of hosts
+ls or cat ~etc/hosts
+
+- how to print in 2 column in one page
+enscript -2r filename
+enscript -2r -G filename to have fancy header
+lpr : same as print
+lpq: to see queue status
+lprm id: remove print job from queue
+lpstat : to see status
+
+- how to get IP address/name
+>nslookup hostname
+then we can get IP address
+
+<hostname : /home/yhwang 27>nslookup yahoo.com
+Server:  sinatra.mis.amat.com
+Address:  152.135.113.14
+
+Non-authoritative answer:
+Name:    yahoo.com
+Addresses:  216.115.108.245, 216.115.108.243
+
+- how to get ip address
+type ifconfig -a
+lo0: flags=849<UP,LOOPBACK,RUNNING,MULTICAST> mtu 8232
+	inet 127.0.0.1 netmask ff000000
+		hme0: flags=863<UP,BROADCAST,NOTRAILERS,RUNNING,MULTICAST> mtu 1500
+		inet 152.135.67.23 netmask ffffff00 broadcast 152.135.67.255
+ffffff00 = 255.255.255.0 subnet mask
+127.0.0.1 is for itself
+i.e. after opening two communication program, then to test communication,
+need to set ip 127.0.0.1 means : itself
+
+- how to tar whole directory
+tar -cvf filename /aktvol/rls/10_0a
+
+- how to search word with cap or lower character
+fgrep -i word c*/src/*c
+
+- tail -50 filename
+
+- how to find out work station information
+>wsinfo
+
+-how to get ip for sun ws
+adt:~ 66 > cat /etc/hosts
+
+- how to execute xddts
+ refer to p2-task 
+******************
+tft15% xddts
+tft15% Error: Can't open display: tft15:0.0
+-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==--=-=-=-=-=-=-=-=-
+Xddts has failed to establish a connection to the desired X Server.
+-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==--=-=-=-=-=-=-=-=-
+
+If you see error messages of similar to:
+
+Xlib:  connection to "servername:0.0" refused by server
+Xlib:  Client is not authorized to connect to server^
+Error: Can't open display: servername:0
+
+where servername is the name of your workstation, then you need to
+reconfigure your X Session to either allow connections from remote
+machines or, if you're running OpenWindows (tm), connections from other
+users from your workstation.  In the OpenWindows (tm) default
+environment, xauth(1) is used to secure the Server and allow/disallow
+connections.  The XNews Server is also more restrictive and by default
+will not allow connections from other users even from your machine.
+This is a problem because xddts is a setuid program and, although you
+have run the program, your X Server thinks user ddts is running the program.
+
+You may allow connections to your server by using the xhost(1) command.
+To allow connections from other users on your workstation you could use the command:
+
+	xhost + `hostname`
+
+To allow connections from another workstation (in this case named foobar) you could use the command
+
+	xhost + foobar
+
+If you see the error message:
+
+	Error: Can't open display: 
+
+The you need to set the environment variable DISPLAY to some meaningful value.  Under c shell you could enter
+
+	setenv DISPLAY :0
+
+Under Bourne shell you could enter
+
+	DISPLAY=:0
+	export DISPLAY
+
+******************
+
+- how to check who's useing machine
+ ps -eaf | grep run/hbserver
+
+- how to use xemacs
+xemacs
+^s: search
+
+- how to  check disk usage
+du -s -k dir_name
+???? k bytes
+
+du -s dir name
+ex) ???? blocks		1 blocks = 512k
+
+df .	disk free space of current directory
+df -k	display for k 
+
+- how to use emacs	
+emacs filename, use page UP/DOWN, HOME/DOWN
+File -> Exit to close
+
+- how to rewind the tape
+mt -f /dev/rmt/0 rew	: to rewind
+			rst/4
+man mt
+
+- how to use office
+soffice &
+
+- 
+
+- how to change resolution
+m64config     refer man m64config
+
+- how to copy block with vi mode
+1. set your cursor to beginning of block
+2. type mm
+3. move your cursor to end of block
+4. :'m,.y a		/* ' - to call register, . - current, y - yank , a yank m-a to a */
+5. place the cursor to desire paste part
+6. 'ap		/* call register a and p - paste
+
+- how to use rpc (remote procedure call)
+from man rpc: These routines allow C language programs to  make  procedure
+	 calls on other machines across a network
+from Inchen
+rpc calls lib and is a kind of telnet
+	VxWorks 	Unix
+process  <-----> 
+or task  <----->
+	chcc : for simulator only
+	chmb : for real
+	gwin
+- how to fix indent in vi
+modify .exrc
+was
+set autoindent
+is
+#set autoindent
+
+* end of UNIX *
+
